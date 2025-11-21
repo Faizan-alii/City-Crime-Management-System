@@ -1,0 +1,9 @@
+Korangi;Snatching;16/6/2025;8:30;Gun;Bhavesh;Faizan Ali;Coming from home to university for PF paper but in the middle got beaten up and snatched By Bhavesh 
+Landhi;Snatching;12/6/2025;12:50;Knife;Ali Naseer;Munsif ;beaten up 
+Korangi;Robbery;22/2/2025;11:15;Melee;Zaid;Mouiz;Hello
+Korangi;Robbery;;;;;;
+Korangi;Theft;12/4/2025;5:30;Pistol;Ali;Sameer;Ali theft Sameer
+Landhi;Murder;1/9/2025;12:00 Am;Gun;Maryam;Merab;Mouiz;Murdered on Birthday!!!
+Landhi;Murder;1/9/2025;12:00;Knife,Gun;Maryam,Merab;Mouiz;Murdered on Birthday
+
+Gulshan;Assault;12/2/2025;3:30;Gun;Daniyal;Hamza;Assaulted...
