@@ -1,318 +1,405 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <conio.h> // for _getch()
-#include <algorithm>
-#include <vector>
+#include <conio.h>
+#include <cstdlib>
+#include <cstring>
 
 using namespace std;
 
+#define MAX_ITEMS 20
+#define MAX_CRIMES 100
+
+// -------------------------
+// Crime Class
+// -------------------------
 class Crime {
 private:
-    string area;
-    string type;
-    string date;
-    string time;
-    vector<string> weapons;
-    vector<string> suspects;
-    vector<string> victims;
-    string description;
+    string area, type, date, time, description;
+
+    string weapons[MAX_ITEMS], suspects[MAX_ITEMS], victims[MAX_ITEMS];
+    int weaponCount, suspectCount, victimCount;
+
+    string status;      // NEW FIELD
+    string handler;     // NEW FIELD
 
 public:
+    Crime() {
+        weaponCount = suspectCount = victimCount = 0;
+        status = "Unsolved";  // default
+        handler = "Unknown";
+    }
+
     // ---------- Getters ----------
     string getArea() { return area; }
     string getType() { return type; }
     string getDate() { return date; }
     string getTime() { return time; }
-    vector<string> getWeapons() { return weapons; }
-    vector<string> getSuspects() { return suspects; }
-    vector<string> getVictims() { return victims; }
+    string getStatus() { return status; }
+    string getHandler() { return handler; }
     string getDescription() { return description; }
+
+    int getWeaponCount() { return weaponCount; }
+    int getSuspectCount() { return suspectCount; }
+    int getVictimCount() { return victimCount; }
+
+    string getWeapon(int i) { return weapons[i]; }
+    string getSuspect(int i) { return suspects[i]; }
+    string getVictim(int i) { return victims[i]; }
 
     // ---------- Setters ----------
     void setArea(string a) { area = a; }
     void setType(string t) { type = t; }
     void setDate(string d) { date = d; }
     void setTime(string t) { time = t; }
-    void setWeapons(vector<string> w) { weapons = w; }
-    void setSuspects(vector<string> s) { suspects = s; }
-    void setVictims(vector<string> v) { victims = v; }
     void setDescription(string d) { description = d; }
+
+    void setStatus(string s) { status = s; }
+    void setHandler(string h) { handler = h; }
+
+    void setWeapons(string w[], int count) {
+        weaponCount = count;
+        for (int i = 0; i < count; i++) weapons[i] = w[i];
+    }
+
+    void setSuspects(string s[], int count) {
+        suspectCount = count;
+        for (int i = 0; i < count; i++) suspects[i] = s[i];
+    }
+
+    void setVictims(string v[], int count) {
+        victimCount = count;
+        for (int i = 0; i < count; i++) victims[i] = v[i];
+    }
 
     // ---------- Helper Functions ----------
     string toLowerCase(string s) {
-        for (char &c : s) c = tolower(c);
+        for (int i = 0; i < s.length(); i++)
+            if (s[i] >= 'A' && s[i] <= 'Z') s[i] += 32;
         return s;
     }
 
     string capitalizeWords(string s) {
         bool capNext = true;
-        for (char &c : s) {
-            if (capNext && isalpha(c)) { c = toupper(c); capNext = false; }
-            else c = tolower(c);
-            if (c == ' ') capNext = true;
+        for (int i = 0; i < s.length(); i++) {
+            if (capNext && s[i] >= 'a' && s[i] <= 'z')
+                s[i] -= 32;
+            else if (!capNext && s[i] >= 'A' && s[i] <= 'Z')
+                s[i] += 32;
+
+            capNext = (s[i] == ' ');
         }
         return s;
     }
 
-    vector<string> inputMultiple(const string& itemName) {
-        vector<string> items;
+    int inputNumber() {
+        char buf[10];
         int num;
-        string input;
-
         while (true) {
-            cout << "Enter number of " << itemName << ": ";
-            getline(cin, input);
-            if (toLowerCase(input) == "exit") {
-                cout << "Crime entry cancelled.\n";
-                return {};
-            }
-            try {
-                num = stoi(input);
-                if (num <= 0) throw invalid_argument("Invalid");
-                break;
-            } catch (...) {
-                cout << "Please enter a valid positive number!\n";
-            }
+            cin.getline(buf, 10);
+            if (strcmp(buf, "exit") == 0) return -1;
+            num = atoi(buf);
+            if (num > 0) return num;
+            cout << "Please enter a valid positive number!\n";
         }
-
-        for (int i = 0; i < num; i++) {
-            while (true) {
-                cout << itemName << " " << (i + 1) << ": ";
-                getline(cin, input);
-                if (!input.empty()) {
-                    items.push_back(capitalizeWords(input));
-                    break;
-                } else {
-                    cout << itemName << " cannot be empty!\n";
-                }
-            }
-        }
-
-        return items;
     }
 
-    // ---------- Main Functions ----------
+    int inputMultiple(string itemName, string items[]) {
+        cout << "Enter number of " << itemName << ": ";
+        int num = inputNumber();
+        if (num == -1) return 0;
+
+        for (int i = 0; i < num; i++) {
+            string input;
+            do {
+                cout << itemName << " " << i + 1 << ": ";
+                getline(cin, input);
+            } while (input.empty());
+
+            items[i] = capitalizeWords(input);
+        }
+        return num;
+    }
+
+    // ---------- Main input function ----------
     void inputCrime() {
-        // cin.ignore();
         string input;
         int step = 0;
 
-        while (step < 8) {
-            switch(step) {
-                case 0: cout << "Enter Area (Korangi, Landhi, Gulshan, North, Nazimabad, Clifton, Lyari, Saddar, Malir, Orangi)\n(back = previous, exit = cancel): "; break;
-                case 1: cout << "Enter Crime Type (Robbery, Snatching, Murder, Theft, Assault)\n(back = previous, exit = cancel): "; break;
-                case 2: cout << "Enter Date (DD/MM/YYYY)\n(back = previous, exit = cancel): "; break;
-                case 3: cout << "Enter Time (HH:MM)\n(back = previous, exit = cancel): "; break;
-                case 4: cout << "Enter Weapons Used\n"; break;
-                case 5: cout << "Enter Suspects\n"; break;
-                case 6: cout << "Enter Victims\n"; break;
-                case 7: cout << "Enter Description\n(back = previous, exit = cancel): "; break;
+        while (step < 10) {
+            switch (step) {
+            case 0: cout << "Enter Area (Korangi, Landhi, Gulshan, North, Nazimabad, Clifton, Lyari, Saddar, Malir, Orangi): "; break;
+            case 1: cout << "Enter Crime Type (Robbery, Snatching, Murder, Theft, Assault): "; break;
+            case 2: cout << "Enter Date (DD/MM/YYYY): "; break;
+            case 3: cout << "Enter Time (HH:MM): "; break;
+            case 4: cout << "Enter Weapons Used:\n"; break;
+            case 5: cout << "Enter Suspects:\n"; break;
+            case 6: cout << "Enter Victims:\n"; break;
+            case 7: cout << "Enter Description: "; break;
+            case 8: cout << "Enter Case Status (Solved / Unsolved): "; break;
+            case 9: cout << "Enter Case Handler (Officer Name): "; break;
             }
 
-            if (step != 4 && step != 5 && step != 6) {
-                getline(cin, input);
-                string lower = toLowerCase(input);
+            if (step >= 4 && step <= 6) {
+                if (step == 4) weaponCount = inputMultiple("Weapon", weapons);
+                if (step == 5) suspectCount = inputMultiple("Suspect", suspects);
+                if (step == 6) victimCount = inputMultiple("Victim", victims);
+                step++;
+                continue;
+            }
 
-                if (lower == "exit") { cout << "Crime entry cancelled.\n"; return; }
-                if (lower == "back") { if(step > 0) step--; else cout << "Already at first field.\n"; continue; }
+            getline(cin, input);
+            string lower = toLowerCase(input);
 
-                switch(step) {
-                    case 0: {
-                        string a = lower;
-                        if (a == "korangi" || a == "landhi" || a == "gulshan" || a == "north" || a == "nazimabad" || a == "clifton" || a == "lyari" || a == "saddar" || a == "malir" || a == "orangi") {
-                            setArea(capitalizeWords(a));
-                            step++;
-                        } else cout << "Invalid area!\n";
-                        break;
-                    }
-                    case 1: {
-                        string t = lower;
-                        if (t == "robbery" || t == "snatching" || t == "murder" || t == "theft" || t == "assault") {
-                            setType(capitalizeWords(t));
-                            step++;
-                        } else cout << "Invalid crime type!\n";
-                        break;
-                    }
-                    case 2: if (!input.empty()) { setDate(input); step++; } else cout << "Date cannot be empty!\n"; break;
-                    case 3: if (!input.empty()) { setTime(input); step++; } else cout << "Time cannot be empty!\n"; break;
-                    case 7: if (!input.empty()) { setDescription(input); step++; } else cout << "Description cannot be empty!\n"; break;
-                }
-            } else {
-                if (step == 4) { setWeapons(inputMultiple("weapon")); if (getWeapons().empty()) return; step++; }
-                if (step == 5) { setSuspects(inputMultiple("suspect")); if (getSuspects().empty()) return; step++; }
-                if (step == 6) { setVictims(inputMultiple("victim")); if (getVictims().empty()) return; step++; }
+            switch (step) {
+            case 0:
+                if (lower == "korangi" || lower == "landhi" || lower == "gulshan" ||
+                    lower == "north" || lower == "nazimabad" || lower == "clifton" ||
+                    lower == "lyari" || lower == "saddar" || lower == "malir" ||
+                    lower == "orangi") {
+                    area = capitalizeWords(lower);
+                    step++;
+                } else cout << "Invalid area!\n";
+                break;
+
+            case 1:
+                if (lower == "robbery" || lower == "snatching" || lower == "murder" ||
+                    lower == "theft" || lower == "assault") {
+                    type = capitalizeWords(lower);
+                    step++;
+                } else cout << "Invalid crime type!\n";
+                break;
+
+            case 2: if (!input.empty()) { date = input; step++; } break;
+            case 3: if (!input.empty()) { time = input; step++; } break;
+            case 7: if (!input.empty()) { description = input; step++; } break;
+
+            case 8:
+                if (lower == "solved" || lower == "unsolved") {
+                    status = capitalizeWords(input);
+                    step++;
+                } else cout << "Invalid status! Use Solved/Unsolved.\n";
+                break;
+
+            case 9:
+                if (!input.empty()) {
+                    handler = capitalizeWords(input);
+                    step++;
+                } else cout << "Handler name cannot be empty!\n";
+                break;
             }
         }
-
         cout << "\nCrime entered successfully!\n";
     }
 
+    // ---------- Display Crime ----------
     void showCrime() {
         cout << "\n--- Crime Details ---\n";
-        cout << "Area: " << getArea() << "\nType: " << getType() << "\nDate: " << getDate() << "\nTime: " << getTime() << "\n";
+        cout << "Area: " << area << "\n";
+        cout << "Type: " << type << "\n";
+        cout << "Date: " << date << "\n";
+        cout << "Time: " << time << "\n";
 
-        cout << "Weapons Used:\n"; for (size_t i=0; i<getWeapons().size(); i++) cout << "  Weapon " << i+1 << ": " << getWeapons()[i] << "\n";
-        cout << "Suspects:\n"; for (size_t i=0; i<getSuspects().size(); i++) cout << "  Suspect " << i+1 << ": " << getSuspects()[i] << "\n";
-        cout << "Victims:\n"; for (size_t i=0; i<getVictims().size(); i++) cout << "  Victim " << i+1 << ": " << getVictims()[i] << "\n";
+        cout << "Weapons:\n";
+        for (int i = 0; i < weaponCount; i++)
+            cout << "  " << weapons[i] << "\n";
 
-        cout << "Description: " << getDescription() << "\n";
+        cout << "Suspects:\n";
+        for (int i = 0; i < suspectCount; i++)
+            cout << "  " << suspects[i] << "\n";
+
+        cout << "Victims:\n";
+        for (int i = 0; i < victimCount; i++)
+            cout << "  " << victims[i] << "\n";
+
+        cout << "Description: " << description << "\n";
+        cout << "Status: " << status << "\n";
+        cout << "Handler: " << handler << "\n";
     }
 
+    // ---------- Save to File ----------
     void saveToFile() {
         ofstream file("crime_records.txt", ios::app);
-        file << getArea() << ";" << getType() << ";" << getDate() << ";" << getTime() << ";";
 
-        for (size_t i=0; i<getWeapons().size(); i++) { file << getWeapons()[i]; if(i != getWeapons().size()-1) file << ","; }
+        file << area << ";" << type << ";" << date << ";" << time << ";";
+
+        for (int i = 0; i < weaponCount; i++) {
+            file << weapons[i];
+            if (i != weaponCount - 1) file << ",";
+        }
         file << ";";
 
-        for (size_t i=0; i<getSuspects().size(); i++) { file << getSuspects()[i]; if(i != getSuspects().size()-1) file << ","; }
+        for (int i = 0; i < suspectCount; i++) {
+            file << suspects[i];
+            if (i != suspectCount - 1) file << ",";
+        }
         file << ";";
 
-        for (size_t i=0; i<getVictims().size(); i++) { file << getVictims()[i]; if(i != getVictims().size()-1) file << ","; }
-        file << ";" << getDescription() << "\n";
+        for (int i = 0; i < victimCount; i++) {
+            file << victims[i];
+            if (i != victimCount - 1) file << ",";
+        }
+
+        file << ";" << description << ";" << status << ";" << handler << "\n";
+
         file.close();
     }
 };
 
 
-// -------------------------
-// User Class
-// -------------------------
+// --------------------------------
+// USER CLASS
+// --------------------------------
 class User {
 protected:
-    string password; // Encapsulated password
+    string password;
 
 public:
-    User(string pass) {
-        password = pass; // set password
-    }
+    User(string pass) { password = pass; }
 
     bool inputPassword() {
         int attempts = 3;
+
         while (attempts > 0) {
-            string input = ""; char ch;
+            string input = "";
+            char ch;
+
             cout << "\nEnter Password (" << attempts << " attempts left): ";
+
             while (true) {
                 ch = _getch();
-                if (ch == 13) { cout << endl; break; } // Enter
-                else if (ch == 8) { // Backspace
-                    if (!input.empty()) { input.resize(input.size() - 1); cout << "\b \b"; }
+                if (ch == 13) break;
+
+                if (ch == 8 && !input.empty()) {
+                    input.pop_back();
+                    cout << "\b \b";
+                } else if (ch != 8) {
+                    input += ch;
+                    cout << "*";
                 }
-                else { input += ch; cout << "*"; }
             }
+
+            cout << endl;
+
             if (input == password) return true;
-            else { cout << "Incorrect Password!\n"; attempts--; }
+
+            attempts--;
+            cout << "Incorrect Password!\n";
         }
-        cout << "Wrong password 3 times. Exiting...\n";
+
+        cout << "Too many wrong attempts. Exiting...\n";
         exit(0);
     }
 
-void portal(){
-    cout<<"User Portal(base function)\n";
-}
-
-
-
-    // -------------------------
-// Search Crime By Area 
-// -------------------------
 protected:
+    // ----------- SEARCH BY AREA -----------
     void searchCrimeByArea() {
         string searchArea;
-        cout << "Enter area to search: ";
+        cout << "Enter  area to search: ";
         getline(cin, searchArea);
 
-        string searchAreaLower;
-        transform(searchArea.begin(), searchArea.end(), back_inserter(searchAreaLower), ::tolower);
+        string searchLower = "";
+        for (char c : searchArea) {
+            if (c >= 'A' && c <= 'Z') c += 32;
+            searchLower += c;
+        }
 
         ifstream file("crime_records.txt");
-        if (!file) { cout << "No crime records found!\n"; return; }
+        if (!file) {
+            cout << "No crime records found!\n";
+            return;
+        }
 
         string line;
-        bool found = false;
+        int countFound = 0;
 
         while (getline(file, line)) {
             if (line.empty()) continue;
 
-            string fields[8];
-            size_t start = 0, end;
+            string fields[10];
             int i = 0;
+            size_t start = 0, end;
 
-            while ((end = line.find(';', start)) != string::npos && i < 7) {
+            while ((end = line.find(';', start)) != string::npos && i < 9) {
                 fields[i++] = line.substr(start, end - start);
                 start = end + 1;
             }
             fields[i] = line.substr(start);
 
             string areaLower = fields[0];
-            transform(areaLower.begin(), areaLower.end(), areaLower.begin(), ::tolower);
+            for (char& c : areaLower)
+                if (c >= 'A' && c <= 'Z') c += 32;
 
-            if (areaLower == searchAreaLower) {
-                found = true;
-                cout << "\n--- Crime ---\n";
-                cout << "Area: " << fields[0]
-                     << "\nType: " << fields[1]
-                     << "\nDate: " << fields[2]
-                     << "\nTime: " << fields[3]
-                     << "\nWeapon: " << fields[4]
-                     << "\nSuspect: " << fields[5]
-                     << "\nVictim: " << fields[6]
-                     << "\nDescription: " << fields[7] << "\n";
+            if (areaLower == searchLower) {
+                countFound++;
+
+                cout << "\n=== Crime " << countFound << " ===\n";
+                cout << "Area: " << fields[0] << "\n";
+                cout << "Type: " << fields[1] << "\n";
+                cout << "Date: " << fields[2] << "\n";
+                cout << "Time: " << fields[3] << "\n";
+                cout << "Weapons: " << fields[4] << "\n";
+                cout << "Suspects: " << fields[5] << "\n";
+                cout << "Victims: " << fields[6] << "\n";
+                cout << "Description: " << fields[7] << "\n";
+                cout << "Status: " << fields[8] << "\n";
+                cout << "Handler: " << fields[9] << "\n";
             }
         }
 
-        if (!found) cout << "No crimes found in this area.\n";
+        if (countFound == 0)
+            cout << "No crimes found for this area.\n";
+        else
+            cout << "\nTotal crimes found: " << countFound << "\n";
+
         file.close();
     }
-
-
-
-
 };
 
 
-
-
 // -------------------------
-// Admin Portal
+// Admin Class
 // -------------------------
 class Admin : public User {
 public:
-    Admin() : User("admin123") {} // inherits User constructor
+    Admin() : User("admin123") {}
 
-    void portal() {
-        if (!inputPassword()) return; // use User's inputPassword
-        int choice;
-        do {
-            cout << "\n--- Admin Portal ---\n";
-            cout << "1. Add Crime\n2. Update Crime\n3. Search Crime by Area\n4. Exit\nChoice: ";
-            cin >> choice; cin.ignore();
+    void portal();
+    void updateCrime();
+};
 
-            if (choice == 1) {
-                Crime c;
-                c.inputCrime();
-                c.saveToFile();
-            }
-            else if (choice == 2) {
-                updateCrime(); // existing function
-            }
-            else if (choice == 3) {
-                searchCrimeByArea(); // existing function
-            }
-        } while (choice != 4);
-    }
+void Admin::portal() {
+    if (!inputPassword()) return;
 
-// -------------------------
-// Update Crime
-// -------------------------
-void updateCrime() {
-    // cin.ignore();
+    int choice;
+    do {
+        cout << "\n--- Admin Portal ---\n1. Add Crime\n2. Update Crime\n3. Search Crime by Area\n4. Exit\nChoice: ";
+        cin >> choice;
+        cin.ignore();
+
+        if (choice == 1) {
+            Crime c;
+            c.inputCrime();
+            c.saveToFile();
+        }
+        else if (choice == 2)
+            updateCrime();
+        else if (choice == 3)
+            searchCrimeByArea();
+
+    } while (choice != 4);
+}
+
+void Admin::updateCrime() {
     string searchArea;
-    cout << "Enter the area of crime to update: ";
+    cout << "Enter area of crime to update: ";
     getline(cin, searchArea);
-    string searchAreaLower;
-    transform(searchArea.begin(), searchArea.end(), back_inserter(searchAreaLower), ::tolower);
+
+    string searchLower = "";
+    for (char c : searchArea) {
+        if (c >= 'A' && c <= 'Z') c += 32;
+        searchLower += c;
+    }
 
     ifstream inFile("crime_records.txt");
     if (!inFile) {
@@ -320,170 +407,295 @@ void updateCrime() {
         return;
     }
 
-    string line;
-    string records[100];
+    string records[MAX_CRIMES];
     int count = 0;
-    while (getline(inFile, line)) if (!line.empty()) records[count++] = line;
+    string line;
+
+    while (getline(inFile, line))
+        if (!line.empty()) records[count++] = line;
+
     inFile.close();
 
-    int indices[100], idxCount = 0;
+    int indices[MAX_CRIMES];
+    int idxCount = 0;
+
     for (int i = 0; i < count; i++) {
         string area = records[i].substr(0, records[i].find(';'));
+
         string areaLower = area;
-        transform(areaLower.begin(), areaLower.end(), areaLower.begin(), ::tolower);
-        if (areaLower == searchAreaLower) {
-            indices[idxCount++] = i;
-            cout << idxCount << ". " << records[i] << "\n";
+        for (char& c : areaLower)
+            if (c >= 'A' && c <= 'Z') c += 32;
+
+        if (areaLower == searchLower) {
+            indices[idxCount] = i;
+            cout << idxCount + 1 << ". " << records[i] << "\n";
+            idxCount++;
         }
     }
 
     if (idxCount == 0) {
-        cout << "No crimes found in this area.\n";
+        cout << "No crime found in this area.\n";
         return;
     }
 
     int choice;
-    cout << "Enter the number of the crime to update: ";
+    cout << "Enter number of crime to update: ";
     cin >> choice;
+    cin.ignore();
+
     if (choice < 1 || choice > idxCount) {
         cout << "Invalid choice!\n";
         return;
     }
 
-    string fields[8];
     string selected = records[indices[choice - 1]];
-    size_t start = 0, end; int i = 0;
-    while ((end = selected.find(';', start)) != string::npos && i < 7) {
+
+    string fields[10];
+    int i = 0;
+    size_t start = 0, end;
+
+    while ((end = selected.find(';', start)) != string::npos && i < 9) {
         fields[i++] = selected.substr(start, end - start);
         start = end + 1;
     }
+
     fields[i] = selected.substr(start);
 
-    cin.ignore();
+    string stepNames[10] = {
+        "Area", "Type", "Date", "Time",
+        "Weapons", "Suspects", "Victims",
+        "Description", "Status", "Handler"
+    };
+
     string input;
-    string stepNames[8] = { "Area","Type","Date","Time","Weapon","Suspect","Victim","Description" };
-    for (int j = 0; j < 8; j++) {
+
+    for (int j = 0; j < 10; j++) {
         cout << "Enter new " << stepNames[j] << " (current: " << fields[j] << ", press Enter to keep): ";
         getline(cin, input);
         if (!input.empty()) fields[j] = input;
     }
 
-    records[indices[choice - 1]] = fields[0] + ";" + fields[1] + ";" + fields[2] + ";" +
-                                   fields[3] + ";" + fields[4] + ";" + fields[5] + ";" +
-                                   fields[6] + ";" + fields[7];
+    records[indices[choice - 1]] =
+        fields[0] + ";" + fields[1] + ";" + fields[2] + ";" +
+        fields[3] + ";" + fields[4] + ";" + fields[5] + ";" +
+        fields[6] + ";" + fields[7] + ";" + fields[8] + ";" +
+        fields[9];
 
     ofstream outFile("crime_records.txt");
-    for (int j = 0; j < count; j++) outFile << records[j] << "\n";
+
+    for (int j = 0; j < count; j++)
+        outFile << records[j] << "\n";
+
     outFile.close();
 
     cout << "Crime updated successfully!\n";
 }
 
 
-};
 
 // -------------------------
 // Viewer Class
 // -------------------------
 class Viewer : public User {
 public:
-    Viewer() : User("123") {} // inherits User constructor
+    Viewer() : User("123") {}
 
-    void portal() {
-        if (!inputPassword()) return; // use User's inputPassword
-        int choice;
-        do {
-            cout << "\n--- Viewer Portal ---\n";
-            cout << "1. View Crimes by Area\n2. View Crime Statistics\n3. Exit\nChoice: ";
-            cin >> choice; cin.ignore();
+    void portal();
+    void viewStatistics();
+    void searchCrimeByCrimeType();
+};
 
-            if (choice == 1) {
-                searchCrimeByArea(); // existing function
-            }
-            else if (choice == 2) {
-                viewStatistics(); // existing function
-            }
-        } while (choice != 3);
+void Viewer::portal() {
+    if (!inputPassword()) return;
+
+    int choice;
+    do {
+        cout << "\n--- Viewer Portal ---\n1. View Crimes by Area\n2. View Crime Statistics\n3. Search Crime by Type\n4. Exit\nChoice: ";
+        cin >> choice;
+        cin.ignore();
+
+        if (choice == 1) searchCrimeByArea();
+        else if (choice == 2) viewStatistics();
+        else if (choice == 3) searchCrimeByCrimeType();
+
+    } while (choice != 4);
+}
+
+void Viewer::viewStatistics()
+{
+    ifstream file("crime_records.txt");
+    if (!file)
+    {
+        cout << "No crime records found!\n";
+        return;
     }
 
-
-// -------------------------
-// View Statistics
-// -------------------------
-void viewStatistics() {
-    ifstream file("crime_records.txt");
-    if (!file) { cout << "No crime records found!\n"; return; }
-
     string line;
-    string areasList[10] = { "Korangi","Landhi","Gulshan","Gulberg","Saddar","Clifton","Malir","F.B Area","Nazimabad","Orangi" };
+    string areasList[10] = {"Korangi", "Landhi", "Gulshan", "Gulberg", "Saddar", "Clifton", "Malir", "F.B Area", "Nazimabad", "Orangi"};
     int areaCount[10] = {0};
-    int robbery=0,snatching=0,murder=0,theft=0,assault=0;
+    int robbery = 0, snatching = 0, murder = 0, theft = 0, assault = 0;
     int totalCrimes = 0;
 
-    while (getline(file,line)) {
-        if(line.empty()) continue;
+    while (getline(file, line))
+    {
+        if (line.empty()) continue;
         totalCrimes++;
-        string fields[8]; int i=0; size_t pos; string temp=line;
-        while ((pos=temp.find(';'))!=string::npos && i<7) { fields[i++]=temp.substr(0,pos); temp.erase(0,pos+1); }
-        fields[i]=temp;
 
-        string areaLower=fields[0]; transform(areaLower.begin(),areaLower.end(),areaLower.begin(),::tolower);
-        for(int j=0;j<10;j++){
-            string aLower=areasList[j]; transform(aLower.begin(),aLower.end(),aLower.begin(),::tolower);
-            if(areaLower==aLower) areaCount[j]++;
+        string fields[8];
+        int i = 0;
+        size_t pos;
+        string temp = line;
+        while ((pos = temp.find(';')) != string::npos && i < 7)
+        {
+            fields[i++] = temp.substr(0, pos);
+            temp.erase(0, pos + 1);
+        }
+        fields[i] = temp;
+
+        // Convert to lowercase for comparison
+        for (int k = 0; k < fields[0].length(); k++)
+            if (fields[0][k] >= 'A' && fields[0][k] <= 'Z') fields[0][k] += 32;
+        for (int k = 0; k < fields[1].length(); k++)
+            if (fields[1][k] >= 'A' && fields[1][k] <= 'Z') fields[1][k] += 32;
+
+        // Count area occurrences
+        for (int j = 0; j < 10; j++)
+        {
+            string aLower = areasList[j];
+            for (int k = 0; k < aLower.length(); k++)
+                if (aLower[k] >= 'A' && aLower[k] <= 'Z') aLower[k] += 32;
+
+            if (fields[0] == aLower) areaCount[j]++;
         }
 
-        string typeLower=fields[1]; transform(typeLower.begin(),typeLower.end(),typeLower.begin(),::tolower);
-        if(typeLower=="robbery") robbery++;
-        else if(typeLower=="snatching") snatching++;
-        else if(typeLower=="murder") murder++;
-        else if(typeLower=="theft") theft++;
-        else if(typeLower=="assault") assault++;
+        // Count crime types
+        if (fields[1] == "robbery") robbery++;
+        else if (fields[1] == "snatching") snatching++;
+        else if (fields[1] == "murder") murder++;
+        else if (fields[1] == "theft") theft++;
+        else if (fields[1] == "assault") assault++;
     }
     file.close();
 
-    cout<<"\n====== CITY WIDE CRIME STATISTICS ======\n";
-    cout<<"Total Crimes in City: "<<totalCrimes<<"\n";
-    cout<<"\n--- Area-wise Crime Counts ---\n";
-    for(int j=0;j<10;j++) cout<<areasList[j]<<": "<<areaCount[j]<<" crimes\n";
+    // ======================= AUTHENTIC REPORT =======================
+    cout << "\n**\n";
+    cout << "          CITY CRIME STATISTICS REPORT\n";
+    cout << "\n";
+    cout << "Total Crimes Recorded: " << totalCrimes << "\n\n";
 
-    cout<<"\n--- Crime Types Count ---\n";
-    cout<<"Robbery: "<<robbery<<"\nSnatching: "<<snatching<<"\nMurder: "<<murder<<"\nTheft: "<<theft<<"\nAssault: "<<assault<<"\n";
+    cout << "Area-wise Crime Distribution:\n";
+    cout << "----------------------------------------------\n";
+    cout << "Area          | Crimes | % of Total (25)\n";
+    cout << "----------------------------------------------\n";
+    for (int j = 0; j < 10; j++)
+    {
+        float percent = (areaCount[j] * 100.0f) / 25.0f;
+        printf("%-13s | %-6d | %-10.2f%%\n", areasList[j].c_str(), areaCount[j], percent);
+    }
+    cout << "----------------------------------------------\n\n";
 
-    cout<<"\n--- Crime Percentage Area-wise (Out of 25) ---\n";
-    for(int j=0;j<10;j++){ float percent=(areaCount[j]*100.0f)/25.0f; cout<<areasList[j]<<": "<<percent<<"%\n"; }
-    cout<<"\n========================================\n";
+    cout << "Crime Type Summary:\n";
+    cout << "---------------------------\n";
+    printf("Robbery   : %d\n", robbery);
+    printf("Snatching : %d\n", snatching);
+    printf("Murder    : %d\n", murder);
+    printf("Theft     : %d\n", theft);
+    printf("Assault   : %d\n", assault);
+    cout << "---------------------------\n";
+
+    cout << "*************** END OF REPORT ***************\n\n";
+}
+  
+
+void Viewer::searchCrimeByCrimeType() {
+    string typeInput;
+    cout << "Enter Crime Type (Robbery, Snatching, Murder, Theft, Assault): ";
+    getline(cin, typeInput);
+
+    string searchLower = "";
+    for (char c : typeInput) {
+        if (c >= 'A' && c <= 'Z') c += 32;
+        searchLower += c;
+    }
+
+    ifstream file("crime_records.txt");
+    if (!file) {
+        cout << "No crime records found!\n";
+        return;
+    }
+
+    string line;
+    int countFound = 0;
+
+    while (getline(file, line)) {
+        if (line.empty()) continue;
+
+        string fields[10];
+        int i = 0;
+        size_t start = 0, end;
+
+        while ((end = line.find(';', start)) != string::npos && i < 9) {
+            fields[i++] = line.substr(start, end - start);
+            start = end + 1;
+        }
+        fields[i] = line.substr(start);
+
+        string typeLower = fields[1];
+        for (char& c : typeLower)
+            if (c >= 'A' && c <= 'Z') c += 32;
+
+        if (typeLower == searchLower) {
+            countFound++;
+
+            cout << "\n=== Crime " << countFound << " ===\n";
+            cout << "Area: " << fields[0] << "\n";
+            cout << "Type: " << fields[1] << "\n";
+            cout << "Date: " << fields[2] << "\n";
+            cout << "Time: " << fields[3] << "\n";
+            cout << "Weapons: " << fields[4] << "\n";
+            cout << "Suspects: " << fields[5] << "\n";
+            cout << "Victims: " << fields[6] << "\n";
+            cout << "Description: " << fields[7] << "\n";
+            cout << "Status: " << fields[8] << "\n";
+            cout << "Handler: " << fields[9] << "\n";
+        }
+    }
+
+    if (countFound == 0)
+        cout << "No crimes found for this crime type.\n";
+    else
+        cout << "\nTotal crimes found: " << countFound << "\n";
+
+    file.close();
 }
 
 
-};
+
 // -------------------------
-// Main Menu
+// Main
 // -------------------------
 int main() {
     int portalChoice;
+
     do {
-        cout << "\n=== Crime Investigator Project ===\n";
-        cout << "1. Admin Portal\n2. Viewer Portal\n3. Exit Program\nEnter your choice: ";
+        cout << "\n=== Crime Investigator Project ===\n1. Admin Portal\n2. Viewer Portal\n3. Exit Program\nEnter your choice: ";
         cin >> portalChoice;
-        cin.ignore(); // clear input buffer
+        cin.ignore();
 
         if (portalChoice == 1) {
             Admin a;
-            a.portal(); // use Admin class portal
+            a.portal();
         }
         else if (portalChoice == 2) {
             Viewer v;
-            v.portal(); // use Viewer class portal
+            v.portal();
         }
-        else if (portalChoice == 3) {
+        else if (portalChoice == 3)
             cout << "Exiting Program...\n";
-        }
-        else {
+        else
             cout << "Invalid choice! Try again.\n";
-        }
+
     } while (portalChoice != 3);
 
     return 0;
 }
-
