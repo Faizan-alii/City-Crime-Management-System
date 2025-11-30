@@ -27,10 +27,7 @@ bool isValidDateParts(int d, int m, int y) {
     return d <= maxd;
 }
 
-// parse date string in formats like DD/MM/YYYY or D/M/YYYY
-// returns true if parsed; sets day/month/year
 bool parseDateString(const string &s, int &d, int &m, int &y) {
-    // must contain two slashes
     size_t p1 = s.find('/');
     if (p1 == string::npos) return false;
     size_t p2 = s.find('/', p1 + 1);
@@ -39,7 +36,6 @@ bool parseDateString(const string &s, int &d, int &m, int &y) {
         string sd = s.substr(0, p1);
         string sm = s.substr(p1 + 1, p2 - (p1 + 1));
         string sy = s.substr(p2 + 1);
-        // trim spaces
         auto trim = [](string str) {
             size_t a = 0;
             while (a < str.size() && isspace((unsigned char)str[a])) a++;
@@ -47,28 +43,33 @@ bool parseDateString(const string &s, int &d, int &m, int &y) {
             while (b > a && isspace((unsigned char)str[b - 1])) b--;
             return str.substr(a, b - a);
         };
-        sd = trim(sd);
-        sm = trim(sm);
-        sy = trim(sy);
-        d = stoi(sd);
-        m = stoi(sm);
-        y = stoi(sy);
-    } catch (...) {
-        return false;
-    }
+        sd = trim(sd); sm = trim(sm); sy = trim(sy);
+        d = stoi(sd); m = stoi(sm); y = stoi(sy);
+    } catch (...) { return false; }
     return isValidDateParts(d, m, y);
 }
 
-// convert date parts to comparable integer YYYYMMDD
 int dateToInt(int d, int m, int y) {
     return y * 10000 + m * 100 + d;
 }
 
-// wrapper that parses a date string and returns comparable int; returns -1 on failure
 int parseDateToInt(const string &s) {
     int d, m, y;
     if (!parseDateString(s, d, m, y)) return -1;
     return dateToInt(d, m, y);
+}
+
+// -------------------------
+// Time validation
+// -------------------------
+bool isValidTime(const string& t) {
+    if (t.length() != 5 || t[2] != ':') return false;
+    int hh, mm;
+    try {
+        hh = stoi(t.substr(0, 2));
+        mm = stoi(t.substr(3, 2));
+    } catch (...) { return false; }
+    return (hh >= 0 && hh <= 23 && mm >= 0 && mm <= 59);
 }
 
 // -------------------------
@@ -77,21 +78,14 @@ int parseDateToInt(const string &s) {
 class Crime {
 private:
     string area, type, date, time, description;
-
     string weapons[MAX_ITEMS], suspects[MAX_ITEMS], victims[MAX_ITEMS];
     int weaponCount, suspectCount, victimCount;
-
     string status;      // NEW FIELD
     string handler;     // NEW FIELD
 
 public:
-    Crime() {
-        weaponCount = suspectCount = victimCount = 0;
-        status = "Unsolved";  // default
-        handler = "Unknown";
-    }
+    Crime() { weaponCount = suspectCount = victimCount = 0; status = "Unsolved"; handler = "Unknown"; }
 
-    // ---------- Getters ----------
     string getArea() { return area; }
     string getType() { return type; }
     string getDate() { return date; }
@@ -108,7 +102,6 @@ public:
     string getSuspect(int i) { return suspects[i]; }
     string getVictim(int i) { return victims[i]; }
 
-    // ---------- Setters ----------
     void setArea(string a) { area = a; }
     void setType(string t) { type = t; }
     void setDate(string d) { date = d; }
@@ -118,81 +111,19 @@ public:
     void setStatus(string s) { status = s; }
     void setHandler(string h) { handler = h; }
 
-    void setWeapons(string w[], int count) {
-        weaponCount = count;
-        for (int i = 0; i < count; i++) weapons[i] = w[i];
-    }
+    void setWeapons(string w[], int count) { weaponCount = count; for (int i = 0; i < count; i++) weapons[i] = w[i]; }
+    void setSuspects(string s[], int count) { suspectCount = count; for (int i = 0; i < count; i++) suspects[i] = s[i]; }
+    void setVictims(string v[], int count) { victimCount = count; for (int i = 0; i < count; i++) victims[i] = v[i]; }
 
-    void setSuspects(string s[], int count) {
-        suspectCount = count;
-        for (int i = 0; i < count; i++) suspects[i] = s[i];
-    }
+    string toLowerCase(string s) { for (int i = 0; i < (int)s.length(); i++) if (s[i] >= 'A' && s[i] <= 'Z') s[i] += 32; return s; }
+    string capitalizeWords(string s) { bool capNext = true; for (int i = 0; i < (int)s.length(); i++) { if (capNext && s[i] >= 'a' && s[i] <= 'z') s[i] -= 32; else if (!capNext && s[i] >= 'A' && s[i] <= 'Z') s[i] += 32; capNext = (s[i] == ' '); } return s; }
 
-    void setVictims(string v[], int count) {
-        victimCount = count;
-        for (int i = 0; i < count; i++) victims[i] = v[i];
-    }
+    int inputNumber() { string buf; int num; while (true) { getline(cin, buf); if (buf == "exit") return -1; try { num = stoi(buf); if (num > 0) return num; cout << "Please enter a valid positive number!\n"; } catch (...) { cout << "Please enter a valid positive number!\n"; } } }
 
-    // ---------- Helper Functions ----------
-    string toLowerCase(string s) {
-        for (int i = 0; i < (int)s.length(); i++)
-            if (s[i] >= 'A' && s[i] <= 'Z') s[i] += 32;
-        return s;
-    }
+    int inputMultiple(string itemName, string items[]) { cout << "Enter number of " << itemName << ": "; int num = inputNumber(); if (num == -1) return 0; for (int i = 0; i < num; i++) { string input; do { cout << itemName << " " << i + 1 << ": "; getline(cin, input); } while (input.empty()); items[i] = capitalizeWords(input); } return num; }
 
-    string capitalizeWords(string s) {
-        bool capNext = true;
-        for (int i = 0; i < (int)s.length(); i++) {
-            if (capNext && s[i] >= 'a' && s[i] <= 'z')
-                s[i] -= 32;
-            else if (!capNext && s[i] >= 'A' && s[i] <= 'Z')
-                s[i] += 32;
-
-            capNext = (s[i] == ' ');
-        }
-        return s;
-    }
-
-    int inputNumber() {
-        string buf;
-        int num;
-        while (true) {
-            getline(cin, buf);
-            if (buf == "exit") return -1;
-            try {
-                // stoi will throw if not valid integer
-                num = stoi(buf);
-                if (num > 0) return num;
-                cout << "Please enter a valid positive number!\n";
-            }
-            catch (const exception&) {
-                cout << "Please enter a valid positive number!\n";
-            }
-        }
-    }
-
-    int inputMultiple(string itemName, string items[]) {
-        cout << "Enter number of " << itemName << ": ";
-        int num = inputNumber();
-        if (num == -1) return 0;
-
-        for (int i = 0; i < num; i++) {
-            string input;
-            do {
-                cout << itemName << " " << i + 1 << ": ";
-                getline(cin, input);
-            } while (input.empty());
-
-            items[i] = capitalizeWords(input);
-        }
-        return num;
-    }
-
-    // ---------- Main input function ----------
     void inputCrime() {
-        string input;
-        int step = 0;
-
+        string input; int step = 0;
         while (step < 10) {
             switch (step) {
             case 0: cout << "Enter Area (Korangi, Landhi, Gulshan, North, Nazimabad, Clifton, Lyari, Saddar, Malir, Orangi): "; break;
@@ -219,118 +150,41 @@ public:
             string lower = toLowerCase(input);
 
             switch (step) {
-            case 0:
-                if (lower == "korangi" || lower == "landhi" || lower == "gulshan" ||
-                    lower == "north" || lower == "nazimabad" || lower == "clifton" ||
-                    lower == "lyari" || lower == "saddar" || lower == "malir" ||
-                    lower == "orangi") {
-                    area = capitalizeWords(lower);
-                    step++;
-                } else cout << "Invalid area!\n";
-                break;
-
-            case 1:
-                if (lower == "robbery" || lower == "snatching" || lower == "murder" ||
-                    lower == "theft" || lower == "assault") {
-                    type = capitalizeWords(lower);
-                    step++;
-                } else cout << "Invalid crime type!\n";
-                break;
-
-            case 2:
-                if (!input.empty()) {
-                    // Validate date format before accepting
-                    int tmp = parseDateToInt(input);
-                    if (tmp == -1) {
-                        cout << "Invalid date format or invalid date. Use DD/MM/YYYY.\n";
-                    } else {
-                        date = input;
-                        step++;
-                    }
-                }
-                break;
-            case 3:
-                if (!input.empty()) { time = input; step++; }
-                break;
+            case 0: if (lower == "korangi" || lower == "landhi" || lower == "gulshan" || lower == "north" || lower == "nazimabad" || lower == "clifton" || lower == "lyari" || lower == "saddar" || lower == "malir" || lower == "orangi") { area = capitalizeWords(lower); step++; } else cout << "Invalid area!\n"; break;
+            case 1: if (lower == "robbery" || lower == "snatching" || lower == "murder" || lower == "theft" || lower == "assault") { type = capitalizeWords(lower); step++; } else cout << "Invalid crime type!\n"; break;
+            case 2: if (!input.empty()) { int tmp = parseDateToInt(input); if (tmp == -1) cout << "Invalid date format or invalid date. Use DD/MM/YYYY.\n"; else { date = input; step++; } } break;
+            case 3: if (!input.empty()) { if (isValidTime(input)) { time = input; step++; } else { cout << "Invalid time! Use HH:MM (24-hour format).\n"; } } break;
             case 7: if (!input.empty()) { description = input; step++; } break;
-
-            case 8:
-                if (lower == "solved" || lower == "unsolved") {
-                    status = capitalizeWords(input);
-                    step++;
-                } else cout << "Invalid status! Use Solved/Unsolved.\n";
-                break;
-
-            case 9:
-                if (!input.empty()) {
-                    handler = capitalizeWords(input);
-                    step++;
-                } else cout << "Handler name cannot be empty!\n";
-                break;
+            case 8: if (lower == "solved" || lower == "unsolved") { status = capitalizeWords(input); step++; } else cout << "Invalid status! Use Solved/Unsolved.\n"; break;
+            case 9: if (!input.empty()) { handler = capitalizeWords(input); step++; } else cout << "Handler name cannot be empty!\n"; break;
             }
         }
         cout << "\nCrime entered successfully!\n";
     }
 
-    // ---------- Display Crime ----------
     void showCrime() {
         cout << "\n--- Crime Details ---\n";
-        cout << "Area: " << area << "\n";
-        cout << "Type: " << type << "\n";
-        cout << "Date: " << date << "\n";
-        cout << "Time: " << time << "\n";
-
-        cout << "Weapons:\n";
-        for (int i = 0; i < weaponCount; i++)
-            cout << "  " << weapons[i] << "\n";
-
-        cout << "Suspects:\n";
-        for (int i = 0; i < suspectCount; i++)
-            cout << "  " << suspects[i] << "\n";
-
-        cout << "Victims:\n";
-        for (int i = 0; i < victimCount; i++)
-            cout << "  " << victims[i] << "\n";
-
-        cout << "Description: " << description << "\n";
-        cout << "Status: " << status << "\n";
-        cout << "Handler: " << handler << "\n";
+        cout << "Area: " << area << "\nType: " << type << "\nDate: " << date << "\nTime: " << time << "\n";
+        cout << "Weapons:\n"; for (int i = 0; i < weaponCount; i++) cout << "  " << weapons[i] << "\n";
+        cout << "Suspects:\n"; for (int i = 0; i < suspectCount; i++) cout << "  " << suspects[i] << "\n";
+        cout << "Victims:\n"; for (int i = 0; i < victimCount; i++) cout << "  " << victims[i] << "\n";
+        cout << "Description: " << description << "\nStatus: " << status << "\nHandler: " << handler << "\n";
     }
 
-    // ---------- Save to File ----------
     void saveToFile() {
         try {
             ofstream file("crime_records.txt", ios::app);
-            if (!file) throw runtime_error("Error opening crime_records.txt for writing!");
-
+            if (!file) throw runtime_error("Error opening crime_records.txt!");
             file << area << ";" << type << ";" << date << ";" << time << ";";
-
-            for (int i = 0; i < weaponCount; i++) {
-                file << weapons[i];
-                if (i != weaponCount - 1) file << ",";
-            }
-            file << ";";
-
-            for (int i = 0; i < suspectCount; i++) {
-                file << suspects[i];
-                if (i != suspectCount - 1) file << ",";
-            }
-            file << ";";
-
-            for (int i = 0; i < victimCount; i++) {
-                file << victims[i];
-                if (i != victimCount - 1) file << ",";
-            }
-
-            file << ";" << description << ";" << status << ";" << handler << "\n";
-
+            for (int i = 0; i < weaponCount; i++) { file << weapons[i]; if (i != weaponCount - 1) file << ","; } file << ";";
+            for (int i = 0; i < suspectCount; i++) { file << suspects[i]; if (i != suspectCount - 1) file << ","; } file << ";";
+            for (int i = 0; i < victimCount; i++) { file << victims[i]; if (i != victimCount - 1) file << ","; } file << ";";
+            file << description << ";" << status << ";" << handler << "\n";
             file.close();
-        }
-        catch (const exception& e) {
-            cout << "File Write Error: " << e.what() << "\n";
-        }
+        } catch (const exception& e) { cout << "File Write Error: " << e.what() << "\n"; }
     }
 };
+
 
 
 // --------------------------------
