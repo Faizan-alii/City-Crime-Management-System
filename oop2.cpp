@@ -446,6 +446,74 @@ protected:
         file.close();
     }
 
+    // ----------- SEARCH BY TYPE -----------
+    void searchCrimeByType() {
+        string typeInput;
+        cout << "Enter Crime Type (Robbery, Snatching, Murder, Theft, Assault): ";
+        getline(cin, typeInput);
+
+        string searchLower = "";
+        for (char c : typeInput) {
+            if (c >= 'A' && c <= 'Z') c += 32;
+            searchLower += c;
+        }
+
+        ifstream file("crime_records.txt");
+        if (!file) {
+            cout << "No crime records found!\n";
+            return;
+        }
+
+        string line;
+        int countFound = 0;
+
+        try {
+            while (getline(file, line)) {
+                if (line.empty()) continue;
+
+                string fields[10];
+                int i = 0;
+                size_t start = 0, end;
+
+                while ((end = line.find(';', start)) != string::npos && i < 9) {
+                    fields[i++] = line.substr(start, end - start);
+                    start = end + 1;
+                }
+                fields[i] = line.substr(start);
+
+                string typeLower = fields[1];
+                for (char& c : typeLower)
+                    if (c >= 'A' && c <= 'Z') c += 32;
+
+                if (typeLower == searchLower) {
+                    countFound++;
+
+                    cout << "\n=== Crime " << countFound << " ===\n";
+                    cout << "Area: " << fields[0] << "\n";
+                    cout << "Type: " << fields[1] << "\n";
+                    cout << "Date: " << fields[2] << "\n";
+                    cout << "Time: " << fields[3] << "\n";
+                    cout << "Weapons: " << fields[4] << "\n";
+                    cout << "Suspects: " << fields[5] << "\n";
+                    cout << "Victims: " << fields[6] << "\n";
+                    cout << "Description: " << fields[7] << "\n";
+                    cout << "Status: " << fields[8] << "\n";
+                    cout << "Handler: " << fields[9] << "\n";
+                }
+            }
+        }
+        catch (const exception& e) {
+            cout << "Error reading records: " << e.what() << "\n";
+        }
+
+        if (countFound == 0)
+            cout << "No crimes found for this crime type.\n";
+        else
+            cout << "\nTotal crimes found: " << countFound << "\n";
+
+        file.close();
+    }
+
     // ----------- SEARCH BY DATE RANGE -----------
     void searchCrimeByDateRange() {
         string startDateStr, endDateStr;
@@ -525,6 +593,30 @@ protected:
 
         file.close();
     }
+
+    // ----------- SEARCH MENU (used by Admin & Viewer) -----------
+    void searchCrimeMenu() {
+        int choice;
+        do {
+            cout << "\n--- Search Crime ---\n"
+                 << "1. Search Crime by Area\n"
+                 << "2. Search Crime by Type\n"
+                 << "3. Search Crime by Date Range\n"
+                 << "4. Back\n"
+                 << "Choice: ";
+            if (!(cin >> choice)) {
+                cout << "Invalid input. Please enter a number.\n";
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                continue;
+            }
+            cin.ignore();
+
+            if (choice == 1) searchCrimeByArea();
+            else if (choice == 2) searchCrimeByType();
+            else if (choice == 3) searchCrimeByDateRange();
+        } while (choice != 4);
+    }
 };
 
 
@@ -547,9 +639,9 @@ void Admin::portal() {
         cout << "\n--- Admin Portal ---\n"
              << "1. Add Crime\n"
              << "2. Update Crime\n"
-             << "3. Search Crime by Area\n"
-             << "4. Search Crime by Date Range\n"
-             << "5. Exit\nChoice: ";
+             << "3. Search Crime\n"
+             << "4. Back\n"
+             << "Choice: ";
         if (!(cin >> choice)) {
             cout << "Invalid input. Please enter a number.\n";
             cin.clear();
@@ -566,11 +658,9 @@ void Admin::portal() {
         else if (choice == 2)
             updateCrime();
         else if (choice == 3)
-            searchCrimeByArea();
-        else if (choice == 4)
-            searchCrimeByDateRange();
+            searchCrimeMenu();
 
-    } while (choice != 5);
+    } while (choice != 4);
 }
 
 void Admin::updateCrime() {
@@ -723,11 +813,10 @@ void Viewer::portal() {
     int choice;
     do {
         cout << "\n--- Viewer Portal ---\n"
-             << "1. View Crimes by Area\n"
-             << "2. View Crime Statistics\n"
-             << "3. Search Crime by Type\n"
-             << "4. Search Crime by Date Range\n"
-             << "5. Exit\nChoice: ";
+             << "1. View Statistics\n"
+             << "2. Search Crime\n"
+             << "3. Back\n"
+             << "Choice: ";
         if (!(cin >> choice)) {
             cout << "Invalid input. Please enter a number.\n";
             cin.clear();
@@ -736,12 +825,10 @@ void Viewer::portal() {
         }
         cin.ignore();
 
-        if (choice == 1) searchCrimeByArea();
-        else if (choice == 2) viewStatistics();
-        else if (choice == 3) searchCrimeByCrimeType();
-        else if (choice == 4) searchCrimeByDateRange();
+        if (choice == 1) viewStatistics();
+        else if (choice == 2) searchCrimeMenu();
 
-    } while (choice != 5);
+    } while (choice != 3);
 }
 
 void Viewer::viewStatistics()
@@ -840,74 +927,7 @@ void Viewer::viewStatistics()
 }
   
 
-void Viewer::searchCrimeByCrimeType() {
-    string typeInput;
-    cout << "Enter Crime Type (Robbery, Snatching, Murder, Theft, Assault): ";
-    getline(cin, typeInput);
-
-    string searchLower = "";
-    for (char c : typeInput) {
-        if (c >= 'A' && c <= 'Z') c += 32;
-        searchLower += c;
-    }
-
-    ifstream file("crime_records.txt");
-    if (!file) {
-        cout << "No crime records found!\n";
-        return;
-    }
-
-    string line;
-    int countFound = 0;
-
-    try {
-        while (getline(file, line)) {
-            if (line.empty()) continue;
-
-            string fields[10];
-            int i = 0;
-            size_t start = 0, end;
-
-            while ((end = line.find(';', start)) != string::npos && i < 9) {
-                fields[i++] = line.substr(start, end - start);
-                start = end + 1;
-            }
-            fields[i] = line.substr(start);
-
-            string typeLower = fields[1];
-            for (char& c : typeLower)
-                if (c >= 'A' && c <= 'Z') c += 32;
-
-            if (typeLower == searchLower) {
-                countFound++;
-
-                cout << "\n=== Crime " << countFound << " ===\n";
-                cout << "Area: " << fields[0] << "\n";
-                cout << "Type: " << fields[1] << "\n";
-                cout << "Date: " << fields[2] << "\n";
-                cout << "Time: " << fields[3] << "\n";
-                cout << "Weapons: " << fields[4] << "\n";
-                cout << "Suspects: " << fields[5] << "\n";
-                cout << "Victims: " << fields[6] << "\n";
-                cout << "Description: " << fields[7] << "\n";
-                cout << "Status: " << fields[8] << "\n";
-                cout << "Handler: " << fields[9] << "\n";
-            }
-        }
-    }
-    catch (const exception& e) {
-        cout << "Error reading records: " << e.what() << "\n";
-    }
-
-    if (countFound == 0)
-        cout << "No crimes found for this crime type.\n";
-    else
-        cout << "\nTotal crimes found: " << countFound << "\n";
-
-    file.close();
-}
-
-
+// searchCrimeByCrimeType is implemented in User as searchCrimeByType()
 
 // -------------------------
 // Main
