@@ -13,6 +13,65 @@ using namespace std;
 #define MAX_CRIMES 100
 
 // -------------------------
+// Date utilities (parsing, validation, comparison)
+// -------------------------
+bool isLeapYear(int y) {
+    return (y % 4 == 0 && y % 100 != 0) || (y % 400 == 0);
+}
+
+bool isValidDateParts(int d, int m, int y) {
+    if (y < 1 || m < 1 || m > 12 || d < 1) return false;
+    int mdays[] = { 0,31,28,31,30,31,30,31,31,30,31,30,31 };
+    int maxd = mdays[m];
+    if (m == 2 && isLeapYear(y)) maxd = 29;
+    return d <= maxd;
+}
+
+// parse date string in formats like DD/MM/YYYY or D/M/YYYY
+// returns true if parsed; sets day/month/year
+bool parseDateString(const string &s, int &d, int &m, int &y) {
+    // must contain two slashes
+    size_t p1 = s.find('/');
+    if (p1 == string::npos) return false;
+    size_t p2 = s.find('/', p1 + 1);
+    if (p2 == string::npos) return false;
+    try {
+        string sd = s.substr(0, p1);
+        string sm = s.substr(p1 + 1, p2 - (p1 + 1));
+        string sy = s.substr(p2 + 1);
+        // trim spaces
+        auto trim = [](string str) {
+            size_t a = 0;
+            while (a < str.size() && isspace((unsigned char)str[a])) a++;
+            size_t b = str.size();
+            while (b > a && isspace((unsigned char)str[b - 1])) b--;
+            return str.substr(a, b - a);
+        };
+        sd = trim(sd);
+        sm = trim(sm);
+        sy = trim(sy);
+        d = stoi(sd);
+        m = stoi(sm);
+        y = stoi(sy);
+    } catch (...) {
+        return false;
+    }
+    return isValidDateParts(d, m, y);
+}
+
+// convert date parts to comparable integer YYYYMMDD
+int dateToInt(int d, int m, int y) {
+    return y * 10000 + m * 100 + d;
+}
+
+// wrapper that parses a date string and returns comparable int; returns -1 on failure
+int parseDateToInt(const string &s) {
+    int d, m, y;
+    if (!parseDateString(s, d, m, y)) return -1;
+    return dateToInt(d, m, y);
+}
+
+// -------------------------
 // Crime Class
 // -------------------------
 class Crime {
@@ -178,8 +237,21 @@ public:
                 } else cout << "Invalid crime type!\n";
                 break;
 
-            case 2: if (!input.empty()) { date = input; step++; } break;
-            case 3: if (!input.empty()) { time = input; step++; } break;
+            case 2:
+                if (!input.empty()) {
+                    // Validate date format before accepting
+                    int tmp = parseDateToInt(input);
+                    if (tmp == -1) {
+                        cout << "Invalid date format or invalid date. Use DD/MM/YYYY.\n";
+                    } else {
+                        date = input;
+                        step++;
+                    }
+                }
+                break;
+            case 3:
+                if (!input.empty()) { time = input; step++; }
+                break;
             case 7: if (!input.empty()) { description = input; step++; } break;
 
             case 8:
@@ -373,6 +445,86 @@ protected:
 
         file.close();
     }
+
+    // ----------- SEARCH BY DATE RANGE -----------
+    void searchCrimeByDateRange() {
+        string startDateStr, endDateStr;
+        cout << "Enter START Date (DD/MM/YYYY): ";
+        getline(cin, startDateStr);
+        cout << "Enter END Date (DD/MM/YYYY): ";
+        getline(cin, endDateStr);
+
+        int startInt = parseDateToInt(startDateStr);
+        if (startInt == -1) {
+            cout << "Invalid START date. Use DD/MM/YYYY.\n";
+            return;
+        }
+        int endInt = parseDateToInt(endDateStr);
+        if (endInt == -1) {
+            cout << "Invalid END date. Use DD/MM/YYYY.\n";
+            return;
+        }
+
+        if (startInt > endInt) {
+            cout << "Start date must be earlier than or equal to end date.\n";
+            return;
+        }
+
+        ifstream file("crime_records.txt");
+        if (!file) {
+            cout << "No crime records found!\n";
+            return;
+        }
+
+        string line;
+        int countFound = 0;
+
+        try {
+            while (getline(file, line)) {
+                if (line.empty()) continue;
+
+                string fields[10];
+                int i = 0;
+                size_t start = 0, end;
+
+                while ((end = line.find(';', start)) != string::npos && i < 9) {
+                    fields[i++] = line.substr(start, end - start);
+                    start = end + 1;
+                }
+                fields[i] = line.substr(start);
+
+                // fields[2] is date
+                if (fields[2].empty()) continue;
+                int crimeDateInt = parseDateToInt(fields[2]);
+                if (crimeDateInt == -1) continue; // skip malformed dates
+
+                if (crimeDateInt >= startInt && crimeDateInt <= endInt) {
+                    countFound++;
+                    cout << "\n=== Crime " << countFound << " ===\n";
+                    cout << "Area: " << fields[0] << "\n";
+                    cout << "Type: " << fields[1] << "\n";
+                    cout << "Date: " << fields[2] << "\n";
+                    cout << "Time: " << fields[3] << "\n";
+                    cout << "Weapons: " << fields[4] << "\n";
+                    cout << "Suspects: " << fields[5] << "\n";
+                    cout << "Victims: " << fields[6] << "\n";
+                    cout << "Description: " << fields[7] << "\n";
+                    cout << "Status: " << fields[8] << "\n";
+                    cout << "Handler: " << fields[9] << "\n";
+                }
+            }
+        }
+        catch (const exception& e) {
+            cout << "Error searching by date range: " << e.what() << "\n";
+        }
+
+        if (countFound == 0)
+            cout << "No crimes found in this date range.\n";
+        else
+            cout << "\nTotal crimes found: " << countFound << "\n";
+
+        file.close();
+    }
 };
 
 
@@ -392,7 +544,12 @@ void Admin::portal() {
 
     int choice;
     do {
-        cout << "\n--- Admin Portal ---\n1. Add Crime\n2. Update Crime\n3. Search Crime by Area\n4. Exit\nChoice: ";
+        cout << "\n--- Admin Portal ---\n"
+             << "1. Add Crime\n"
+             << "2. Update Crime\n"
+             << "3. Search Crime by Area\n"
+             << "4. Search Crime by Date Range\n"
+             << "5. Exit\nChoice: ";
         if (!(cin >> choice)) {
             cout << "Invalid input. Please enter a number.\n";
             cin.clear();
@@ -410,8 +567,10 @@ void Admin::portal() {
             updateCrime();
         else if (choice == 3)
             searchCrimeByArea();
+        else if (choice == 4)
+            searchCrimeByDateRange();
 
-    } while (choice != 4);
+    } while (choice != 5);
 }
 
 void Admin::updateCrime() {
@@ -508,7 +667,18 @@ void Admin::updateCrime() {
     for (int j = 0; j < 10; j++) {
         cout << "Enter new " << stepNames[j] << " (current: " << fields[j] << ", press Enter to keep): ";
         getline(cin, input);
-        if (!input.empty()) fields[j] = input;
+        if (!input.empty()) {
+            // If updating date, validate
+            if (j == 2) {
+                if (parseDateToInt(input) == -1) {
+                    cout << "Invalid date entered. Keeping old date.\n";
+                } else {
+                    fields[j] = input;
+                }
+            } else {
+                fields[j] = input;
+            }
+        }
     }
 
     records[indices[choice - 1]] =
@@ -552,7 +722,12 @@ void Viewer::portal() {
 
     int choice;
     do {
-        cout << "\n--- Viewer Portal ---\n1. View Crimes by Area\n2. View Crime Statistics\n3. Search Crime by Type\n4. Exit\nChoice: ";
+        cout << "\n--- Viewer Portal ---\n"
+             << "1. View Crimes by Area\n"
+             << "2. View Crime Statistics\n"
+             << "3. Search Crime by Type\n"
+             << "4. Search Crime by Date Range\n"
+             << "5. Exit\nChoice: ";
         if (!(cin >> choice)) {
             cout << "Invalid input. Please enter a number.\n";
             cin.clear();
@@ -564,8 +739,9 @@ void Viewer::portal() {
         if (choice == 1) searchCrimeByArea();
         else if (choice == 2) viewStatistics();
         else if (choice == 3) searchCrimeByCrimeType();
+        else if (choice == 4) searchCrimeByDateRange();
 
-    } while (choice != 4);
+    } while (choice != 5);
 }
 
 void Viewer::viewStatistics()
