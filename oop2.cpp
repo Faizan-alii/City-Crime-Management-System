@@ -4,6 +4,8 @@
 #include <conio.h>
 #include <cstdlib>
 #include <cstring>
+#include <stdexcept>
+#include <limits>
 
 using namespace std;
 
@@ -74,14 +76,14 @@ public:
 
     // ---------- Helper Functions ----------
     string toLowerCase(string s) {
-        for (int i = 0; i < s.length(); i++)
+        for (int i = 0; i < (int)s.length(); i++)
             if (s[i] >= 'A' && s[i] <= 'Z') s[i] += 32;
         return s;
     }
 
     string capitalizeWords(string s) {
         bool capNext = true;
-        for (int i = 0; i < s.length(); i++) {
+        for (int i = 0; i < (int)s.length(); i++) {
             if (capNext && s[i] >= 'a' && s[i] <= 'z')
                 s[i] -= 32;
             else if (!capNext && s[i] >= 'A' && s[i] <= 'Z')
@@ -93,14 +95,20 @@ public:
     }
 
     int inputNumber() {
-        char buf[10];
+        string buf;
         int num;
         while (true) {
-            cin.getline(buf, 10);
-            if (strcmp(buf, "exit") == 0) return -1;
-            num = atoi(buf);
-            if (num > 0) return num;
-            cout << "Please enter a valid positive number!\n";
+            getline(cin, buf);
+            if (buf == "exit") return -1;
+            try {
+                // stoi will throw if not valid integer
+                num = stoi(buf);
+                if (num > 0) return num;
+                cout << "Please enter a valid positive number!\n";
+            }
+            catch (const exception&) {
+                cout << "Please enter a valid positive number!\n";
+            }
         }
     }
 
@@ -219,30 +227,36 @@ public:
 
     // ---------- Save to File ----------
     void saveToFile() {
-        ofstream file("crime_records.txt", ios::app);
+        try {
+            ofstream file("crime_records.txt", ios::app);
+            if (!file) throw runtime_error("Error opening crime_records.txt for writing!");
 
-        file << area << ";" << type << ";" << date << ";" << time << ";";
+            file << area << ";" << type << ";" << date << ";" << time << ";";
 
-        for (int i = 0; i < weaponCount; i++) {
-            file << weapons[i];
-            if (i != weaponCount - 1) file << ",";
+            for (int i = 0; i < weaponCount; i++) {
+                file << weapons[i];
+                if (i != weaponCount - 1) file << ",";
+            }
+            file << ";";
+
+            for (int i = 0; i < suspectCount; i++) {
+                file << suspects[i];
+                if (i != suspectCount - 1) file << ",";
+            }
+            file << ";";
+
+            for (int i = 0; i < victimCount; i++) {
+                file << victims[i];
+                if (i != victimCount - 1) file << ",";
+            }
+
+            file << ";" << description << ";" << status << ";" << handler << "\n";
+
+            file.close();
         }
-        file << ";";
-
-        for (int i = 0; i < suspectCount; i++) {
-            file << suspects[i];
-            if (i != suspectCount - 1) file << ",";
+        catch (const exception& e) {
+            cout << "File Write Error: " << e.what() << "\n";
         }
-        file << ";";
-
-        for (int i = 0; i < victimCount; i++) {
-            file << victims[i];
-            if (i != victimCount - 1) file << ",";
-        }
-
-        file << ";" << description << ";" << status << ";" << handler << "\n";
-
-        file.close();
     }
 };
 
@@ -313,38 +327,43 @@ protected:
         string line;
         int countFound = 0;
 
-        while (getline(file, line)) {
-            if (line.empty()) continue;
+        try {
+            while (getline(file, line)) {
+                if (line.empty()) continue;
 
-            string fields[10];
-            int i = 0;
-            size_t start = 0, end;
+                string fields[10];
+                int i = 0;
+                size_t start = 0, end;
 
-            while ((end = line.find(';', start)) != string::npos && i < 9) {
-                fields[i++] = line.substr(start, end - start);
-                start = end + 1;
+                while ((end = line.find(';', start)) != string::npos && i < 9) {
+                    fields[i++] = line.substr(start, end - start);
+                    start = end + 1;
+                }
+                fields[i] = line.substr(start);
+
+                string areaLower = fields[0];
+                for (char& c : areaLower)
+                    if (c >= 'A' && c <= 'Z') c += 32;
+
+                if (areaLower == searchLower) {
+                    countFound++;
+
+                    cout << "\n=== Crime " << countFound << " ===\n";
+                    cout << "Area: " << fields[0] << "\n";
+                    cout << "Type: " << fields[1] << "\n";
+                    cout << "Date: " << fields[2] << "\n";
+                    cout << "Time: " << fields[3] << "\n";
+                    cout << "Weapons: " << fields[4] << "\n";
+                    cout << "Suspects: " << fields[5] << "\n";
+                    cout << "Victims: " << fields[6] << "\n";
+                    cout << "Description: " << fields[7] << "\n";
+                    cout << "Status: " << fields[8] << "\n";
+                    cout << "Handler: " << fields[9] << "\n";
+                }
             }
-            fields[i] = line.substr(start);
-
-            string areaLower = fields[0];
-            for (char& c : areaLower)
-                if (c >= 'A' && c <= 'Z') c += 32;
-
-            if (areaLower == searchLower) {
-                countFound++;
-
-                cout << "\n=== Crime " << countFound << " ===\n";
-                cout << "Area: " << fields[0] << "\n";
-                cout << "Type: " << fields[1] << "\n";
-                cout << "Date: " << fields[2] << "\n";
-                cout << "Time: " << fields[3] << "\n";
-                cout << "Weapons: " << fields[4] << "\n";
-                cout << "Suspects: " << fields[5] << "\n";
-                cout << "Victims: " << fields[6] << "\n";
-                cout << "Description: " << fields[7] << "\n";
-                cout << "Status: " << fields[8] << "\n";
-                cout << "Handler: " << fields[9] << "\n";
-            }
+        }
+        catch (const exception& e) {
+            cout << "Error reading records: " << e.what() << "\n";
         }
 
         if (countFound == 0)
@@ -374,7 +393,12 @@ void Admin::portal() {
     int choice;
     do {
         cout << "\n--- Admin Portal ---\n1. Add Crime\n2. Update Crime\n3. Search Crime by Area\n4. Exit\nChoice: ";
-        cin >> choice;
+        if (!(cin >> choice)) {
+            cout << "Invalid input. Please enter a number.\n";
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            continue;
+        }
         cin.ignore();
 
         if (choice == 1) {
@@ -411,8 +435,15 @@ void Admin::updateCrime() {
     int count = 0;
     string line;
 
-    while (getline(inFile, line))
-        if (!line.empty()) records[count++] = line;
+    try {
+        while (getline(inFile, line))
+            if (!line.empty()) records[count++] = line;
+    }
+    catch (const exception& e) {
+        cout << "Error reading file: " << e.what() << "\n";
+        inFile.close();
+        return;
+    }
 
     inFile.close();
 
@@ -420,7 +451,8 @@ void Admin::updateCrime() {
     int idxCount = 0;
 
     for (int i = 0; i < count; i++) {
-        string area = records[i].substr(0, records[i].find(';'));
+        size_t posSep = records[i].find(';');
+        string area = (posSep == string::npos) ? records[i] : records[i].substr(0, posSep);
 
         string areaLower = area;
         for (char& c : areaLower)
@@ -440,7 +472,12 @@ void Admin::updateCrime() {
 
     int choice;
     cout << "Enter number of crime to update: ";
-    cin >> choice;
+    if (!(cin >> choice)) {
+        cout << "Invalid input!\n";
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        return;
+    }
     cin.ignore();
 
     if (choice < 1 || choice > idxCount) {
@@ -458,7 +495,6 @@ void Admin::updateCrime() {
         fields[i++] = selected.substr(start, end - start);
         start = end + 1;
     }
-
     fields[i] = selected.substr(start);
 
     string stepNames[10] = {
@@ -481,14 +517,20 @@ void Admin::updateCrime() {
         fields[6] + ";" + fields[7] + ";" + fields[8] + ";" +
         fields[9];
 
-    ofstream outFile("crime_records.txt");
+    try {
+        ofstream outFile("crime_records.txt");
+        if (!outFile) throw runtime_error("Could not open crime_records.txt for writing!");
 
-    for (int j = 0; j < count; j++)
-        outFile << records[j] << "\n";
+        for (int j = 0; j < count; j++)
+            outFile << records[j] << "\n";
 
-    outFile.close();
+        outFile.close();
 
-    cout << "Crime updated successfully!\n";
+        cout << "Crime updated successfully!\n";
+    }
+    catch (const exception& e) {
+        cout << "File Write Error: " << e.what() << "\n";
+    }
 }
 
 
@@ -511,7 +553,12 @@ void Viewer::portal() {
     int choice;
     do {
         cout << "\n--- Viewer Portal ---\n1. View Crimes by Area\n2. View Crime Statistics\n3. Search Crime by Type\n4. Exit\nChoice: ";
-        cin >> choice;
+        if (!(cin >> choice)) {
+            cout << "Invalid input. Please enter a number.\n";
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            continue;
+        }
         cin.ignore();
 
         if (choice == 1) searchCrimeByArea();
@@ -536,45 +583,55 @@ void Viewer::viewStatistics()
     int robbery = 0, snatching = 0, murder = 0, theft = 0, assault = 0;
     int totalCrimes = 0;
 
-    while (getline(file, line))
-    {
-        if (line.empty()) continue;
-        totalCrimes++;
-
-        string fields[8];
-        int i = 0;
-        size_t pos;
-        string temp = line;
-        while ((pos = temp.find(';')) != string::npos && i < 7)
+    try {
+        while (getline(file, line))
         {
-            fields[i++] = temp.substr(0, pos);
-            temp.erase(0, pos + 1);
+            if (line.empty()) continue;
+            totalCrimes++;
+
+            string fields[10];
+            int i = 0;
+            size_t start = 0, end;
+
+            while ((end = line.find(';', start)) != string::npos && i < 9) {
+                fields[i++] = line.substr(start, end - start);
+                start = end + 1;
+            }
+            fields[i] = line.substr(start);
+
+            // Ensure we have at least two fields
+            if (fields[0].empty() || fields[1].empty()) continue;
+
+            // Convert to lowercase for comparison
+            for (int k = 0; k < (int)fields[0].length(); k++)
+                if (fields[0][k] >= 'A' && fields[0][k] <= 'Z') fields[0][k] += 32;
+            for (int k = 0; k < (int)fields[1].length(); k++)
+                if (fields[1][k] >= 'A' && fields[1][k] <= 'Z') fields[1][k] += 32;
+
+            // Count area occurrences
+            for (int j = 0; j < 10; j++)
+            {
+                string aLower = areasList[j];
+                for (int k = 0; k < (int)aLower.length(); k++)
+                    if (aLower[k] >= 'A' && aLower[k] <= 'Z') aLower[k] += 32;
+
+                if (fields[0] == aLower) areaCount[j]++;
+            }
+
+            // Count crime types
+            if (fields[1] == "robbery") robbery++;
+            else if (fields[1] == "snatching") snatching++;
+            else if (fields[1] == "murder") murder++;
+            else if (fields[1] == "theft") theft++;
+            else if (fields[1] == "assault") assault++;
         }
-        fields[i] = temp;
-
-        // Convert to lowercase for comparison
-        for (int k = 0; k < fields[0].length(); k++)
-            if (fields[0][k] >= 'A' && fields[0][k] <= 'Z') fields[0][k] += 32;
-        for (int k = 0; k < fields[1].length(); k++)
-            if (fields[1][k] >= 'A' && fields[1][k] <= 'Z') fields[1][k] += 32;
-
-        // Count area occurrences
-        for (int j = 0; j < 10; j++)
-        {
-            string aLower = areasList[j];
-            for (int k = 0; k < aLower.length(); k++)
-                if (aLower[k] >= 'A' && aLower[k] <= 'Z') aLower[k] += 32;
-
-            if (fields[0] == aLower) areaCount[j]++;
-        }
-
-        // Count crime types
-        if (fields[1] == "robbery") robbery++;
-        else if (fields[1] == "snatching") snatching++;
-        else if (fields[1] == "murder") murder++;
-        else if (fields[1] == "theft") theft++;
-        else if (fields[1] == "assault") assault++;
     }
+    catch (const exception& e) {
+        cout << "Error processing statistics: " << e.what() << "\n";
+        file.close();
+        return;
+    }
+
     file.close();
 
     // ======================= AUTHENTIC REPORT =======================
@@ -627,38 +684,43 @@ void Viewer::searchCrimeByCrimeType() {
     string line;
     int countFound = 0;
 
-    while (getline(file, line)) {
-        if (line.empty()) continue;
+    try {
+        while (getline(file, line)) {
+            if (line.empty()) continue;
 
-        string fields[10];
-        int i = 0;
-        size_t start = 0, end;
+            string fields[10];
+            int i = 0;
+            size_t start = 0, end;
 
-        while ((end = line.find(';', start)) != string::npos && i < 9) {
-            fields[i++] = line.substr(start, end - start);
-            start = end + 1;
+            while ((end = line.find(';', start)) != string::npos && i < 9) {
+                fields[i++] = line.substr(start, end - start);
+                start = end + 1;
+            }
+            fields[i] = line.substr(start);
+
+            string typeLower = fields[1];
+            for (char& c : typeLower)
+                if (c >= 'A' && c <= 'Z') c += 32;
+
+            if (typeLower == searchLower) {
+                countFound++;
+
+                cout << "\n=== Crime " << countFound << " ===\n";
+                cout << "Area: " << fields[0] << "\n";
+                cout << "Type: " << fields[1] << "\n";
+                cout << "Date: " << fields[2] << "\n";
+                cout << "Time: " << fields[3] << "\n";
+                cout << "Weapons: " << fields[4] << "\n";
+                cout << "Suspects: " << fields[5] << "\n";
+                cout << "Victims: " << fields[6] << "\n";
+                cout << "Description: " << fields[7] << "\n";
+                cout << "Status: " << fields[8] << "\n";
+                cout << "Handler: " << fields[9] << "\n";
+            }
         }
-        fields[i] = line.substr(start);
-
-        string typeLower = fields[1];
-        for (char& c : typeLower)
-            if (c >= 'A' && c <= 'Z') c += 32;
-
-        if (typeLower == searchLower) {
-            countFound++;
-
-            cout << "\n=== Crime " << countFound << " ===\n";
-            cout << "Area: " << fields[0] << "\n";
-            cout << "Type: " << fields[1] << "\n";
-            cout << "Date: " << fields[2] << "\n";
-            cout << "Time: " << fields[3] << "\n";
-            cout << "Weapons: " << fields[4] << "\n";
-            cout << "Suspects: " << fields[5] << "\n";
-            cout << "Victims: " << fields[6] << "\n";
-            cout << "Description: " << fields[7] << "\n";
-            cout << "Status: " << fields[8] << "\n";
-            cout << "Handler: " << fields[9] << "\n";
-        }
+    }
+    catch (const exception& e) {
+        cout << "Error reading records: " << e.what() << "\n";
     }
 
     if (countFound == 0)
@@ -675,27 +737,38 @@ void Viewer::searchCrimeByCrimeType() {
 // Main
 // -------------------------
 int main() {
-    int portalChoice;
+    try {
+        int portalChoice;
 
-    do {
-        cout << "\n=== Crime Investigator Project ===\n1. Admin Portal\n2. Viewer Portal\n3. Exit Program\nEnter your choice: ";
-        cin >> portalChoice;
-        cin.ignore();
+        do {
+            cout << "\n=== Crime Investigator Project ===\n1. Admin Portal\n2. Viewer Portal\n3. Exit Program\nEnter your choice: ";
+            if (!(cin >> portalChoice)) {
+                cout << "Invalid input. Please enter a numeric choice.\n";
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                continue;
+            }
+            cin.ignore();
 
-        if (portalChoice == 1) {
-            Admin a;
-            a.portal();
-        }
-        else if (portalChoice == 2) {
-            Viewer v;
-            v.portal();
-        }
-        else if (portalChoice == 3)
-            cout << "Exiting Program...\n";
-        else
-            cout << "Invalid choice! Try again.\n";
+            if (portalChoice == 1) {
+                Admin a;
+                a.portal();
+            }
+            else if (portalChoice == 2) {
+                Viewer v;
+                v.portal();
+            }
+            else if (portalChoice == 3)
+                cout << "Exiting Program...\n";
+            else
+                cout << "Invalid choice! Try again.\n";
 
-    } while (portalChoice != 3);
+        } while (portalChoice != 3);
+    }
+    catch (const exception& e) {
+        cout << "\nA system error occurred: " << e.what() << "\n";
+    }
 
     return 0;
 }
+
