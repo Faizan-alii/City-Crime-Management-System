@@ -12,6 +12,17 @@ using namespace std;
 #define MAX_ITEMS 20
 #define MAX_CRIMES 100
 
+// ======================
+// CLEAR SCREEN FUNCTION
+// ======================
+void clearScreen() {
+#ifdef _WIN32
+    system("cls");
+#else
+    system("clear");
+#endif
+}
+
 // -------------------------
 // Date utilities (parsing, validation, comparison)
 // -------------------------
@@ -80,11 +91,15 @@ private:
     string area, type, date, time, description;
     string weapons[MAX_ITEMS], suspects[MAX_ITEMS], victims[MAX_ITEMS];
     int weaponCount, suspectCount, victimCount;
-    string status;      // NEW FIELD
-    string handler;     // NEW FIELD
+    string status;
+    string handler;
 
 public:
-    Crime() { weaponCount = suspectCount = victimCount = 0; status = "Unsolved"; handler = "Unknown"; }
+    Crime() {
+        weaponCount = suspectCount = victimCount = 0;
+        status = "Unsolved";
+        handler = "Unknown";
+    }
 
     string getArea() { return area; }
     string getType() { return type; }
@@ -94,48 +109,78 @@ public:
     string getHandler() { return handler; }
     string getDescription() { return description; }
 
-    int getWeaponCount() { return weaponCount; }
-    int getSuspectCount() { return suspectCount; }
-    int getVictimCount() { return victimCount; }
-
-    string getWeapon(int i) { return weapons[i]; }
-    string getSuspect(int i) { return suspects[i]; }
-    string getVictim(int i) { return victims[i]; }
-
     void setArea(string a) { area = a; }
     void setType(string t) { type = t; }
     void setDate(string d) { date = d; }
     void setTime(string t) { time = t; }
     void setDescription(string d) { description = d; }
-
     void setStatus(string s) { status = s; }
     void setHandler(string h) { handler = h; }
 
-    void setWeapons(string w[], int count) { weaponCount = count; for (int i = 0; i < count; i++) weapons[i] = w[i]; }
-    void setSuspects(string s[], int count) { suspectCount = count; for (int i = 0; i < count; i++) suspects[i] = s[i]; }
-    void setVictims(string v[], int count) { victimCount = count; for (int i = 0; i < count; i++) victims[i] = v[i]; }
+    string toLowerCase(string s) {
+        for (int i = 0; i < (int)s.length(); i++)
+            if (s[i] >= 'A' && s[i] <= 'Z') s[i] += 32;
+        return s;
+    }
 
-    string toLowerCase(string s) { for (int i = 0; i < (int)s.length(); i++) if (s[i] >= 'A' && s[i] <= 'Z') s[i] += 32; return s; }
-    string capitalizeWords(string s) { bool capNext = true; for (int i = 0; i < (int)s.length(); i++) { if (capNext && s[i] >= 'a' && s[i] <= 'z') s[i] -= 32; else if (!capNext && s[i] >= 'A' && s[i] <= 'Z') s[i] += 32; capNext = (s[i] == ' '); } return s; }
+    string capitalizeWords(string s) {
+        bool capNext = true;
+        for (int i = 0; i < (int)s.length(); i++) {
+            if (capNext && s[i] >= 'a' && s[i] <= 'z') s[i] -= 32;
+            else if (!capNext && s[i] >= 'A' && s[i] <= 'Z') s[i] += 32;
+            capNext = (s[i] == ' ');
+        }
+        return s;
+    }
 
-    int inputNumber() { string buf; int num; while (true) { getline(cin, buf); if (buf == "exit") return -1; try { num = stoi(buf); if (num > 0) return num; cout << "Please enter a valid positive number!\n"; } catch (...) { cout << "Please enter a valid positive number!\n"; } } }
+    int inputNumber() {
+        string buf; int num;
+        while (true) {
+            getline(cin, buf);
+            if (buf == "exit") return -1;
+            try {
+                num = stoi(buf);
+                if (num > 0) return num;
+            }
+            catch (...) {}
+            cout << "Please enter a valid positive number!\n";
+        }
+    }
 
-    int inputMultiple(string itemName, string items[]) { cout << "Enter number of " << itemName << ": "; int num = inputNumber(); if (num == -1) return 0; for (int i = 0; i < num; i++) { string input; do { cout << itemName << " " << i + 1 << ": "; getline(cin, input); } while (input.empty()); items[i] = capitalizeWords(input); } return num; }
+    int inputMultiple(string itemName, string items[]) {
+        cout << "Enter number of " << itemName << ": ";
+        int num = inputNumber();
+        if (num == -1) return 0;
+
+        for (int i = 0; i < num; i++) {
+            string input;
+            do {
+                cout << itemName << " " << i + 1 << ": ";
+                getline(cin, input);
+            } while (input.empty());
+            items[i] = capitalizeWords(input);
+        }
+        return num;
+    }
 
     void inputCrime() {
-        string input; int step = 0;
+        clearScreen();   // ? NEW — clear before starting entry
+
+        string input;
+        int step = 0;
+
         while (step < 10) {
             switch (step) {
-            case 0: cout << "Enter Area (Korangi, Landhi, Gulshan, North, Nazimabad, Clifton, Lyari, Saddar, Malir, Orangi): "; break;
+            case 0: cout << "Enter Area (Korangi, Landhi, Gulshan, North, Nazimabad, Clifton, Lyari, Saddar, Malir, Orangi ): "; break;
             case 1: cout << "Enter Crime Type (Robbery, Snatching, Murder, Theft, Assault): "; break;
             case 2: cout << "Enter Date (DD/MM/YYYY): "; break;
             case 3: cout << "Enter Time (HH:MM): "; break;
-            case 4: cout << "Enter Weapons Used:\n"; break;
+            case 4: cout << "Enter Weapons:\n"; break;
             case 5: cout << "Enter Suspects:\n"; break;
             case 6: cout << "Enter Victims:\n"; break;
             case 7: cout << "Enter Description: "; break;
-            case 8: cout << "Enter Case Status (Solved / Unsolved): "; break;
-            case 9: cout << "Enter Case Handler (Officer Name): "; break;
+            case 8: cout << "Enter Case Status (Solved/Unsolved): "; break;
+            case 9: cout << "Enter Case Handler: "; break;
             }
 
             if (step >= 4 && step <= 6) {
@@ -150,46 +195,99 @@ public:
             string lower = toLowerCase(input);
 
             switch (step) {
-            case 0: if (lower == "korangi" || lower == "landhi" || lower == "gulshan" || lower == "north" || lower == "nazimabad" || lower == "clifton" || lower == "lyari" || lower == "saddar" || lower == "malir" || lower == "orangi") { area = capitalizeWords(lower); step++; } else cout << "Invalid area!\n"; break;
-            case 1: if (lower == "robbery" || lower == "snatching" || lower == "murder" || lower == "theft" || lower == "assault") { type = capitalizeWords(lower); step++; } else cout << "Invalid crime type!\n"; break;
-            case 2: if (!input.empty()) { int tmp = parseDateToInt(input); if (tmp == -1) cout << "Invalid date format or invalid date. Use DD/MM/YYYY.\n"; else { date = input; step++; } } break;
-            case 3: if (!input.empty()) { if (isValidTime(input)) { time = input; step++; } else { cout << "Invalid time! Use HH:MM (24-hour format).\n"; } } break;
-            case 7: if (!input.empty()) { description = input; step++; } break;
-            case 8: if (lower == "solved" || lower == "unsolved") { status = capitalizeWords(input); step++; } else cout << "Invalid status! Use Solved/Unsolved.\n"; break;
-            case 9: if (!input.empty()) { handler = capitalizeWords(input); step++; } else cout << "Handler name cannot be empty!\n"; break;
+            case 0:
+                if (lower == "korangi" || lower == "landhi" || lower == "gulshan" ||
+                    lower == "north" || lower == "nazimabad" || lower == "clifton" ||
+                    lower == "lyari" || lower == "saddar" || lower == "malir" || lower == "orangi")
+                {
+                    area = capitalizeWords(lower);
+                    step++;
+                } else cout << "Invalid area!\n";
+                break;
+
+            case 1:
+                if (lower == "robbery" || lower == "snatching" || lower == "murder" ||
+                    lower == "theft" || lower == "assault")
+                {
+                    type = capitalizeWords(lower);
+                    step++;
+                } else cout << "Invalid crime type!\n";
+                break;
+
+            case 2:
+                if (!input.empty()) {
+                    int tmp = parseDateToInt(input);
+                    if (tmp == -1) cout << "Invalid date format.\n";
+                    else { date = input; step++; }
+                }
+                break;
+
+            case 3:
+                if (!input.empty()) {
+                    if (isValidTime(input)) { time = input; step++; }
+                    else cout << "Invalid time format!\n";
+                }
+                break;
+
+            case 7:
+                if (!input.empty()) { description = input; step++; }
+                break;
+
+            case 8:
+                if (lower == "solved" || lower == "unsolved") {
+                    status = capitalizeWords(lower);
+                    step++;
+                } else cout << "Invalid status!\n";
+                break;
+
+            case 9:
+                if (!input.empty()) { handler = capitalizeWords(input); step++; }
+                else cout << "Handler cannot be empty!\n";
+                break;
             }
         }
-        cout << "\nCrime entered successfully!\n";
-    }
 
-    void showCrime() {
-        cout << "\n--- Crime Details ---\n";
-        cout << "Area: " << area << "\nType: " << type << "\nDate: " << date << "\nTime: " << time << "\n";
-        cout << "Weapons:\n"; for (int i = 0; i < weaponCount; i++) cout << "  " << weapons[i] << "\n";
-        cout << "Suspects:\n"; for (int i = 0; i < suspectCount; i++) cout << "  " << suspects[i] << "\n";
-        cout << "Victims:\n"; for (int i = 0; i < victimCount; i++) cout << "  " << victims[i] << "\n";
-        cout << "Description: " << description << "\nStatus: " << status << "\nHandler: " << handler << "\n";
+        cout << "\nCrime entered successfully!\n";
     }
 
     void saveToFile() {
         try {
             ofstream file("crime_records.txt", ios::app);
-            if (!file) throw runtime_error("Error opening crime_records.txt!");
+            if (!file) throw runtime_error("Error opening file!");
+
             file << area << ";" << type << ";" << date << ";" << time << ";";
-            for (int i = 0; i < weaponCount; i++) { file << weapons[i]; if (i != weaponCount - 1) file << ","; } file << ";";
-            for (int i = 0; i < suspectCount; i++) { file << suspects[i]; if (i != suspectCount - 1) file << ","; } file << ";";
-            for (int i = 0; i < victimCount; i++) { file << victims[i]; if (i != victimCount - 1) file << ","; } file << ";";
+
+            for (int i = 0; i < weaponCount; i++) {
+                file << weapons[i];
+                if (i != weaponCount - 1) file << ",";
+            }
+            file << ";";
+
+            for (int i = 0; i < suspectCount; i++) {
+                file << suspects[i];
+                if (i != suspectCount - 1) file << ",";
+            }
+            file << ";";
+
+            for (int i = 0; i < victimCount; i++) {
+                file << victims[i];
+                if (i != victimCount - 1) file << ",";
+            }
+            file << ";";
+
             file << description << ";" << status << ";" << handler << "\n";
             file.close();
-        } catch (const exception& e) { cout << "File Write Error: " << e.what() << "\n"; }
+        }
+        catch (const exception& e) {
+            cout << "Write Error: " << e.what() << "\n";
+        }
     }
 };
 
-
-
-// --------------------------------
+// -------------------------------------------------
 // USER CLASS
-// --------------------------------
+// -------------------------------------------------
+
 class User {
 protected:
     string password;
@@ -199,7 +297,6 @@ public:
 
     bool inputPassword() {
         int attempts = 3;
-
         while (attempts > 0) {
             string input = "";
             char ch;
@@ -213,7 +310,8 @@ public:
                 if (ch == 8 && !input.empty()) {
                     input.pop_back();
                     cout << "\b \b";
-                } else if (ch != 8) {
+                }
+                else if (ch != 8) {
                     input += ch;
                     cout << "*";
                 }
@@ -221,7 +319,8 @@ public:
 
             cout << endl;
 
-            if (input == password) return true;
+            if (input == password)
+                return true;
 
             attempts--;
             cout << "Incorrect Password!\n";
@@ -231,11 +330,14 @@ public:
         exit(0);
     }
 
+
 protected:
+
     // ----------- SEARCH BY AREA -----------
     void searchCrimeByArea() {
+        clearScreen();
         string searchArea;
-        cout << "Enter  area to search: ";
+        cout << "Enter Area to search: ";
         getline(cin, searchArea);
 
         string searchLower = "";
@@ -302,6 +404,7 @@ protected:
 
     // ----------- SEARCH BY TYPE -----------
     void searchCrimeByType() {
+        clearScreen();
         string typeInput;
         cout << "Enter Crime Type (Robbery, Snatching, Murder, Theft, Assault): ";
         getline(cin, typeInput);
@@ -361,7 +464,7 @@ protected:
         }
 
         if (countFound == 0)
-            cout << "No crimes found for this crime type.\n";
+            cout << "No crimes found for this type.\n";
         else
             cout << "\nTotal crimes found: " << countFound << "\n";
 
@@ -370,6 +473,8 @@ protected:
 
     // ----------- SEARCH BY DATE RANGE -----------
     void searchCrimeByDateRange() {
+        clearScreen();
+
         string startDateStr, endDateStr;
         cout << "Enter START Date (DD/MM/YYYY): ";
         getline(cin, startDateStr);
@@ -377,18 +482,15 @@ protected:
         getline(cin, endDateStr);
 
         int startInt = parseDateToInt(startDateStr);
-        if (startInt == -1) {
-            cout << "Invalid START date. Use DD/MM/YYYY.\n";
-            return;
-        }
         int endInt = parseDateToInt(endDateStr);
-        if (endInt == -1) {
-            cout << "Invalid END date. Use DD/MM/YYYY.\n";
+
+        if (startInt == -1 || endInt == -1) {
+            cout << "Invalid date entered!\n";
             return;
         }
 
         if (startInt > endInt) {
-            cout << "Start date must be earlier than or equal to end date.\n";
+            cout << "Start date must be earlier than end date.\n";
             return;
         }
 
@@ -415,13 +517,12 @@ protected:
                 }
                 fields[i] = line.substr(start);
 
-                // fields[2] is date
-                if (fields[2].empty()) continue;
-                int crimeDateInt = parseDateToInt(fields[2]);
-                if (crimeDateInt == -1) continue; // skip malformed dates
+                int crimeDate = parseDateToInt(fields[2]);
+                if (crimeDate == -1) continue;
 
-                if (crimeDateInt >= startInt && crimeDateInt <= endInt) {
+                if (crimeDate >= startInt && crimeDate <= endInt) {
                     countFound++;
+
                     cout << "\n=== Crime " << countFound << " ===\n";
                     cout << "Area: " << fields[0] << "\n";
                     cout << "Type: " << fields[1] << "\n";
@@ -437,7 +538,7 @@ protected:
             }
         }
         catch (const exception& e) {
-            cout << "Error searching by date range: " << e.what() << "\n";
+            cout << "Error searching: " << e.what() << "\n";
         }
 
         if (countFound == 0)
@@ -448,18 +549,19 @@ protected:
         file.close();
     }
 
-    // ----------- SEARCH MENU (used by Admin & Viewer) -----------
+    // ----------- SEARCH MENU -----------
     void searchCrimeMenu() {
         int choice;
         do {
+            clearScreen();     // NEW clear
             cout << "\n--- Search Crime ---\n"
-                 << "1. Search Crime by Area\n"
-                 << "2. Search Crime by Type\n"
-                 << "3. Search Crime by Date Range\n"
+                 << "1. Search by Area\n"
+                 << "2. Search by Type\n"
+                 << "3. Search by Date Range\n"
                  << "4. Back\n"
                  << "Choice: ";
+
             if (!(cin >> choice)) {
-                cout << "Invalid input. Please enter a number.\n";
                 cin.clear();
                 cin.ignore(numeric_limits<streamsize>::max(), '\n');
                 continue;
@@ -469,10 +571,15 @@ protected:
             if (choice == 1) searchCrimeByArea();
             else if (choice == 2) searchCrimeByType();
             else if (choice == 3) searchCrimeByDateRange();
+
+            if (choice != 4) {
+                cout << "\nPress Enter to continue...";
+                cin.get();
+            }
+
         } while (choice != 4);
     }
 };
-
 
 // -------------------------
 // Admin Class
@@ -485,19 +592,25 @@ public:
     void updateCrime();
 };
 
+// -------------------------
+// ADMIN PORTAL
+// -------------------------
 void Admin::portal() {
+    clearScreen();
     if (!inputPassword()) return;
 
     int choice;
     do {
+        clearScreen();    // NEW clear
+
         cout << "\n--- Admin Portal ---\n"
              << "1. Add Crime\n"
              << "2. Update Crime\n"
              << "3. Search Crime\n"
              << "4. Back\n"
              << "Choice: ";
+
         if (!(cin >> choice)) {
-            cout << "Invalid input. Please enter a number.\n";
             cin.clear();
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
             continue;
@@ -505,19 +618,33 @@ void Admin::portal() {
         cin.ignore();
 
         if (choice == 1) {
+            clearScreen();
             Crime c;
             c.inputCrime();
             c.saveToFile();
         }
-        else if (choice == 2)
+        else if (choice == 2) {
+            clearScreen();
             updateCrime();
-        else if (choice == 3)
+        }
+        else if (choice == 3) {
             searchCrimeMenu();
+        }
+
+        if (choice != 4) {
+            cout << "\nPress Enter to continue...";
+            cin.get();
+        }
 
     } while (choice != 4);
 }
 
+// -------------------------
+// UPDATE CRIME
+// -------------------------
 void Admin::updateCrime() {
+    clearScreen();
+
     string searchArea;
     cout << "Enter area of crime to update: ";
     getline(cin, searchArea);
@@ -538,15 +665,8 @@ void Admin::updateCrime() {
     int count = 0;
     string line;
 
-    try {
-        while (getline(inFile, line))
-            if (!line.empty()) records[count++] = line;
-    }
-    catch (const exception& e) {
-        cout << "Error reading file: " << e.what() << "\n";
-        inFile.close();
-        return;
-    }
+    while (getline(inFile, line))
+        if (!line.empty()) records[count++] = line;
 
     inFile.close();
 
@@ -554,8 +674,8 @@ void Admin::updateCrime() {
     int idxCount = 0;
 
     for (int i = 0; i < count; i++) {
-        size_t posSep = records[i].find(';');
-        string area = (posSep == string::npos) ? records[i] : records[i].substr(0, posSep);
+        size_t pos = records[i].find(';');
+        string area = (pos == string::npos) ? records[i] : records[i].substr(0, pos);
 
         string areaLower = area;
         for (char& c : areaLower)
@@ -569,24 +689,19 @@ void Admin::updateCrime() {
     }
 
     if (idxCount == 0) {
-        cout << "No crime found in this area.\n";
+        cout << "\nNo crime found in this area.\n";
         return;
     }
 
     int choice;
     cout << "Enter number of crime to update: ";
-    if (!(cin >> choice)) {
-        cout << "Invalid input!\n";
+    if (!(cin >> choice) || choice < 1 || choice > idxCount) {
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        cout << "Invalid selection!\n";
         return;
     }
     cin.ignore();
-
-    if (choice < 1 || choice > idxCount) {
-        cout << "Invalid choice!\n";
-        return;
-    }
 
     string selected = records[indices[choice - 1]];
 
@@ -609,16 +724,18 @@ void Admin::updateCrime() {
     string input;
 
     for (int j = 0; j < 10; j++) {
-        cout << "Enter new " << stepNames[j] << " (current: " << fields[j] << ", press Enter to keep): ";
+        cout << "Enter new " << stepNames[j]
+             << " (current: " << fields[j]
+             << ", press Enter to keep): ";
+
         getline(cin, input);
+
         if (!input.empty()) {
-            // If updating date, validate
-            if (j == 2) {
-                if (parseDateToInt(input) == -1) {
-                    cout << "Invalid date entered. Keeping old date.\n";
-                } else {
+            if (j == 2) { // date field
+                if (parseDateToInt(input) != -1)
                     fields[j] = input;
-                }
+                else
+                    cout << "Invalid date! Keeping old.\n";
             } else {
                 fields[j] = input;
             }
@@ -631,194 +748,124 @@ void Admin::updateCrime() {
         fields[6] + ";" + fields[7] + ";" + fields[8] + ";" +
         fields[9];
 
-    try {
-        ofstream outFile("crime_records.txt");
-        if (!outFile) throw runtime_error("Could not open crime_records.txt for writing!");
+    ofstream outFile("crime_records.txt");
+    for (int j = 0; j < count; j++)
+        outFile << records[j] << "\n";
 
-        for (int j = 0; j < count; j++)
-            outFile << records[j] << "\n";
+    outFile.close();
 
-        outFile.close();
-
-        cout << "Crime updated successfully!\n";
-    }
-    catch (const exception& e) {
-        cout << "File Write Error: " << e.what() << "\n";
-    }
+    cout << "\nCrime updated successfully!\n";
 }
 
 
 
+
 // -------------------------
-// Viewer Class
+// VIEWER CLASS
 // -------------------------
 class Viewer : public User {
 public:
-    Viewer() : User("123") {}
+    Viewer() : User("viewer123") {}
 
     void portal();
-    void viewStatistics();
-    void searchCrimeByCrimeType();
 };
 
+// -------------------------
+// VIEWER PORTAL
+// -------------------------
 void Viewer::portal() {
+    clearScreen();
     if (!inputPassword()) return;
 
     int choice;
     do {
+        clearScreen();   // NEW clear
         cout << "\n--- Viewer Portal ---\n"
-             << "1. View Statistics\n"
-             << "2. Search Crime\n"
+             << "1. Search Crime\n"
+             << "2. Crime Statistics\n"
              << "3. Back\n"
              << "Choice: ";
+
         if (!(cin >> choice)) {
-            cout << "Invalid input. Please enter a number.\n";
             cin.clear();
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
             continue;
         }
         cin.ignore();
 
-        if (choice == 1) viewStatistics();
-        else if (choice == 2) searchCrimeMenu();
+        if (choice == 1) {
+            User::searchCrimeMenu();
+        }
+        else if (choice == 2) {
+            clearScreen();
+
+            int total = 0, unsolved = 0, solved = 0;
+            ifstream file("crime_records.txt");
+            if (!file) {
+                cout << "No data available!\n";
+            }
+            else {
+                string line;
+                while (getline(file, line)) {
+                    if (line.empty()) continue;
+                    total++;
+
+                    int pos = line.rfind(';');
+                    if (pos != string::npos) {
+                        string status = line.substr(pos + 1);
+                        for (char& c : status)
+                            if (c >= 'A' && c <= 'Z') c += 32;
+
+                        if (status == "solved") solved++;
+                        else unsolved++;
+                    }
+                }
+
+                cout << "\n--- Crime Statistics ---\n";
+                cout << "Total Crimes: " << total << "\n";
+                cout << "Solved: " << solved << "\n";
+                cout << "Unsolved: " << unsolved << "\n";
+            }
+
+            cout << "\nPress Enter to continue...";
+            cin.get();
+        }
 
     } while (choice != 3);
 }
 
-void Viewer::viewStatistics()
-{
-    ifstream file("crime_records.txt");
-    if (!file)
-    {
-        cout << "No crime records found!\n";
-        return;
-    }
-
-    string line;
-    string areasList[10] = {"Korangi", "Landhi", "Gulshan", "Gulberg", "Saddar", "Clifton", "Malir", "F.B Area", "Nazimabad", "Orangi"};
-    int areaCount[10] = {0};
-    int robbery = 0, snatching = 0, murder = 0, theft = 0, assault = 0;
-    int totalCrimes = 0;
-
-    try {
-        while (getline(file, line))
-        {
-            if (line.empty()) continue;
-            totalCrimes++;
-
-            string fields[10];
-            int i = 0;
-            size_t start = 0, end;
-
-            while ((end = line.find(';', start)) != string::npos && i < 9) {
-                fields[i++] = line.substr(start, end - start);
-                start = end + 1;
-            }
-            fields[i] = line.substr(start);
-
-            // Ensure we have at least two fields
-            if (fields[0].empty() || fields[1].empty()) continue;
-
-            // Convert to lowercase for comparison
-            for (int k = 0; k < (int)fields[0].length(); k++)
-                if (fields[0][k] >= 'A' && fields[0][k] <= 'Z') fields[0][k] += 32;
-            for (int k = 0; k < (int)fields[1].length(); k++)
-                if (fields[1][k] >= 'A' && fields[1][k] <= 'Z') fields[1][k] += 32;
-
-            // Count area occurrences
-            for (int j = 0; j < 10; j++)
-            {
-                string aLower = areasList[j];
-                for (int k = 0; k < (int)aLower.length(); k++)
-                    if (aLower[k] >= 'A' && aLower[k] <= 'Z') aLower[k] += 32;
-
-                if (fields[0] == aLower) areaCount[j]++;
-            }
-
-            // Count crime types
-            if (fields[1] == "robbery") robbery++;
-            else if (fields[1] == "snatching") snatching++;
-            else if (fields[1] == "murder") murder++;
-            else if (fields[1] == "theft") theft++;
-            else if (fields[1] == "assault") assault++;
-        }
-    }
-    catch (const exception& e) {
-        cout << "Error processing statistics: " << e.what() << "\n";
-        file.close();
-        return;
-    }
-
-    file.close();
-
-    // ======================= AUTHENTIC REPORT =======================
-    cout << "\n**\n";
-    cout << "          CITY CRIME STATISTICS REPORT\n";
-    cout << "\n";
-    cout << "Total Crimes Recorded: " << totalCrimes << "\n\n";
-
-    cout << "Area-wise Crime Distribution:\n";
-    cout << "----------------------------------------------\n";
-    cout << "Area          | Crimes | % of Total (25)\n";
-    cout << "----------------------------------------------\n";
-    for (int j = 0; j < 10; j++)
-    {
-        float percent = (areaCount[j] * 100.0f) / 25.0f;
-        printf("%-13s | %-6d | %-10.2f%%\n", areasList[j].c_str(), areaCount[j], percent);
-    }
-    cout << "----------------------------------------------\n\n";
-
-    cout << "Crime Type Summary:\n";
-    cout << "---------------------------\n";
-    printf("Robbery   : %d\n", robbery);
-    printf("Snatching : %d\n", snatching);
-    printf("Murder    : %d\n", murder);
-    printf("Theft     : %d\n", theft);
-    printf("Assault   : %d\n", assault);
-    cout << "---------------------------\n";
-
-    cout << "*************** END OF REPORT ***************\n\n";
-}
-  
-
-// searchCrimeByCrimeType is implemented in User as searchCrimeByType()
-
 // -------------------------
-// Main
+// MAIN PROGRAM
 // -------------------------
 int main() {
-    try {
-        int portalChoice;
+    Admin admin;
+    Viewer viewer;
 
-        do {
-            cout << "\n=== Crime Investigator Project ===\n1. Admin Portal\n2. Viewer Portal\n3. Exit Program\nEnter your choice: ";
-            if (!(cin >> portalChoice)) {
-                cout << "Invalid input. Please enter a numeric choice.\n";
-                cin.clear();
-                cin.ignore(numeric_limits<streamsize>::max(), '\n');
-                continue;
-            }
-            cin.ignore();
+    int choice;
 
-            if (portalChoice == 1) {
-                Admin a;
-                a.portal();
-            }
-            else if (portalChoice == 2) {
-                Viewer v;
-                v.portal();
-            }
-            else if (portalChoice == 3)
-                cout << "Exiting Program...\n";
-            else
-                cout << "Invalid choice! Try again.\n";
+    do {
+        clearScreen();  // NEW clear before main menu
 
-        } while (portalChoice != 3);
-    }
-    catch (const exception& e) {
-        cout << "\nA system error occurred: " << e.what() << "\n";
-    }
+        cout << "\n=== Crime Investigation System ===\n"
+             << "1. Admin Portal\n"
+             << "2. Viewer Portal\n"
+             << "3. Exit Program\n"
+             << "Enter your choice: ";
 
+        if (!(cin >> choice)) {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            continue;
+        }
+        cin.ignore();
+
+        if (choice == 1) admin.portal();
+        else if (choice == 2) viewer.portal();
+
+    } while (choice != 3);
+
+    cout << "\nExiting Program...\n";
     return 0;
 }
+
 

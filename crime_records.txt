@@ -10,3 +10,4 @@ korangi;Murder;05/01/2026;12:05;Knife;Muhammad Faizan Ali;Hadia Umar;she rob fai
 Lyari;Murder;12/01/2012;12:23;Pen,Pencil,Paper;Uzma Niaz;Areeba Muhammad Amir;areeba fails in OOP Exam end up murdering herself RIP xD;Solved;Detective Faizan
 Nazimabad;Robbery;12/03/2023;12:32;Gun;Unkown;Sameer;robbery at home;Unsolved;Faizan 
 Saddar;Robbery;27/07/2020;12:00;Knife,M416,Degal;Faizan,Slamna,Sammerr,Moiz;Sir;Punjabi;Unsolved;Bhavesh
+Korangi;Robbery;12/2/2010;12:23;Knofe;Ali;Sameer;killed;Unsolved;faizan
