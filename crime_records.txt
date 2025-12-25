@@ -1,1 +1,2 @@
 1001;Korangi;Robbery;12/02/2055;12:22;Knife;Ali;Salma;hehe;Solved;Ali
+1002;Korangi;Robbery;11/12/2025;17:20;Knife;Ali;Faizan;robbery at crossing road ;Solved;Detective Hadia

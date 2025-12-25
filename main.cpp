@@ -324,21 +324,37 @@ public:
     bool login()
     {
         for (int i = 0; i < 3; i++)
+{
+    string in = "";
+    char ch;
+    cout << "\nPassword (" << 3 - i << " tries): ";
+
+    while ((ch = _getch()) != 13) // 13 = Enter key
+    {
+        if (ch == 8) // 8 = Backspace key
         {
-            string in = "";
-            char ch;
-            cout << "\nEnter Password (" << 3 - i << " attempts): ";
-            while ((ch = _getch()) != 13)
+            if (!in.empty())
             {
-                if (ch == 8)
-                    continue;
-                in += ch;
-                cout << "*";
+                in.pop_back();        // remove last character from string
+                cout << "\b \b";      // remove last * from console
             }
-            if (in == password)
-                return true;
-            cout << "\nIncorrect!";
+            continue; // go read next key
         }
+        else
+        {
+            in += ch;  // store character
+            cout << "*"; // print *
+        }
+    }
+
+    if (in == password)
+    {
+        return true;
+    }
+    cout << "\nIncorrect!";
+}
+return false;
+
         return false;
     }
 
@@ -361,7 +377,7 @@ public:
         cout << "\n===================================\n";
     }
 
-    void search(int fieldIdx, string query) // remove exact and test
+    void search(int fieldIdx, string query) 
 
     {
         ifstream f(FILE_NAME); // read file
