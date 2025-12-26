@@ -427,7 +427,7 @@ return false;
         if (!found)
             cout << "No matches found.\n";
         else
-            cout << "\nTotal crimes found in this area: " << count << "\n";
+            cout << "\nTotal crimes found : " << count << "\n";
 
         f.close();
     }

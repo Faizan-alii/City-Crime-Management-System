@@ -1,2 +1,52 @@
-1001;Korangi;Robbery;12/02/2055;12:22;Knife;Ali;Salma;hehe;Solved;Ali
-1002;Korangi;Robbery;11/12/2025;17:20;Knife;Ali;Faizan;robbery at crossing road ;Solved;Detective Hadia
+1001;Korangi;Robbery;12/02/2025;12:22;Knife;Ali;Salma;Suspect threatened victim with knife and stole cash from roadside stall;Solved;Ali
+1002;Landhi;Snatching;11/12/2024;17:20;Pistol;Faizan;Ahmed;Mobile phone snatched at gunpoint while victim was crossing main road;Solved;Detective Hadia
+1003;Gulshan;Theft;05/01/2025;09:10;None;Unknown;Shopkeeper;Unknown person entered shop early morning and stole cash from counter;Unsolved;Officer Kamran
+1004;North;Murder;22/03/2023;23:45;Gun;Unknown;Rashid;Victim shot multiple times outside his residence during late night hours;Solved;Inspector Saleem
+1005;Nazimabad;Assault;18/06/2024;14:30;Stick;Bilal;Imran;Physical fight between neighbors resulted in serious injuries to victim;Solved;Officer Adeel
+1006;Clifton;Robbery;09/08/2025;20:15;Knife;Sami;Tourist;Tourist was robbed of wallet and phone near beach parking area;Unsolved;Officer Zara
+1007;Lyari;Snatching;27/11/2023;19:00;None;Unknown;Rehman;Chain snatched while victim was walking in crowded street market;Solved;Inspector Yousuf
+1008;Saddar;Theft;03/02/2024;11:40;None;Unknown;Shop Owner;Pickpocket stole money from shop owner's bag during rush hours;Unsolved;Officer Bilqees
+1009;Malir;Robbery;15/09/2025;22:10;Pistol;Asad;Naveed;Armed suspects stopped car on highway and looted passengers;Solved;Detective Hamza
+1010;Orangi;Assault;01/04/2024;16:50;Rod;Sameer;Kashif;Victim attacked with iron rod during local street argument;Solved;Officer Rizwan
+1011;Korangi;Theft;10/10/2023;13:25;None;Unknown;Factory Owner;Tools and machinery parts stolen from factory storage area;Unsolved;Officer Ahsan
+1012;Landhi;Murder;29/07/2022;01:30;Gun;Unknown;Zeeshan;Victim killed during late night dispute between rival groups;Solved;Inspector Farooq
+1013;Gulshan;Snatching;06/05/2024;18:05;None;Unknown;Ayesha;Handbag snatched while victim was boarding public transport;Solved;Officer Sana
+1014;North;Robbery;14/12/2025;21:40;Knife;Usman;Tariq;ATM user robbed immediately after withdrawing cash;Unsolved;Officer Naveed
+1015;Nazimabad;Theft;25/03/2023;10:00;None;Unknown;Home Owner;House burglary occurred while family was away during daytime;Solved;Inspector Khalid
+1016;Clifton;Assault;08/09/2024;19:35;Bottle;Haroon;Waiter;Fight broke out in restaurant resulting in injuries to staff member;Solved;Officer Mariam
+1017;Lyari;Robbery;17/01/2025;23:20;Pistol;Junaid;Driver;Taxi driver robbed at gunpoint by passenger during night shift;Unsolved;Officer Danish
+1018;Saddar;Snatching;02/06/2023;15:45;None;Unknown;Student;Backpack snatched near college gate during afternoon hours;Solved;Officer Sameera
+1019;Malir;Murder;11/11/2022;04:10;Gun;Unknown;Shabbir;Victim found dead with gunshot wounds near deserted road;Solved;Inspector Akbar
+1020;Orangi;Theft;30/08/2024;12:55;None;Unknown;Shop Owner;Cash register stolen during short power outage in market;Unsolved;Officer Faisal
+1021;Korangi;Assault;19/02/2025;17:00;Stick;Irfan;Rashad;Victim assaulted during traffic dispute causing minor fractures;Solved;Officer Noman
+1022;Landhi;Robbery;07/07/2023;20:30;Knife;Arsalan;Zubair;Two suspects robbed pedestrian and fled on motorcycle;Solved;Inspector Hina
+1023;Gulshan;Theft;26/12/2024;09:45;None;Unknown;Office Staff;Laptop and documents stolen from office during lunch break;Unsolved;Officer Imran
+1024;North;Snatching;13/03/2025;18:10;None;Unknown;Woman;Gold chain snatched while victim was shopping in local market;Solved;Officer Bushra
+1025;Nazimabad;Robbery;21/05/2025;22:00;Pistol;Kamran;Shop Owner;Armed robbery at grocery store resulted in loss of cash and goods;Unsolved;Detective Saad
+1026;Gulshan;Snatching;14/03/2024;18:40;None;Unknown;Student;Mobile phone snatched outside coaching center during rush hour;Solved;Officer Bushra
+1027;Landhi;Robbery;22/01/2024;21:15;Knife;Asad;Shop Owner;Suspect threatened shopkeeper with knife and escaped with cash;Solved;Inspector Farooq
+1028;Nazimabad;Theft;05/02/2024;10:20;None;Unknown;Home Owner;House burglary occurred while residents were at work;Unsolved;Officer Ahsan
+1029;Landhi;Assault;17/03/2024;16:10;Stick;Bilal;Imran;Victim injured during street argument over parking;Solved;Officer Rizwan
+1030;Clifton;Snatching;29/04/2024;19:30;None;Unknown;Tourist;Mobile phone snatched near beach parking area;Solved;Officer Sana
+1031;Landhi;Theft;12/05/2024;11:50;None;Unknown;Factory Manager;Industrial tools stolen from warehouse overnight;Unsolved;Officer Kamran
+1032;North;Robbery;03/06/2024;22:05;Pistol;Arsalan;Taxi Driver;Taxi driver robbed at gunpoint during night shift;Unsolved;Inspector Khalid
+1033;Landhi;Snatching;19/06/2024;18:00;None;Unknown;Office Worker;Wallet snatched while returning from office;Solved;Officer Noman
+1034;Korangi;Theft;07/07/2024;09:40;None;Unknown;Shop Owner;Shop broken into early morning and cash stolen;Unsolved;Officer Bilal
+1035;Landhi;Robbery;21/07/2024;20:55;Knife;Sameer;Pedestrian;Victim robbed of phone and cash near market area;Solved;Inspector Saleem
+1036;Malir;Assault;04/08/2024;15:25;Stick;Rafiq;Aslam;Fight between neighbors caused minor injuries;Solved;Officer Rizwan
+1037;Landhi;Theft;18/08/2024;10:10;None;Unknown;Office Manager;Laptop stolen during power outage in office;Unsolved;Officer Imran
+1038;Saddar;Snatching;01/09/2024;17:45;None;Unknown;Student;Backpack snatched near college gate;Solved;Officer Bushra
+1039;Landhi;Robbery;15/09/2024;22:30;Pistol;Kamran;Shop Owner;Armed robbery captured on CCTV camera footage;Unsolved;Inspector Hamza
+1040;Gulshan;Theft;02/10/2024;11:00;None;Unknown;Office Staff;Office documents and electronics stolen;Unsolved;Officer Sameera
+1041;Landhi;Assault;16/10/2024;16:35;Rod;Noman;Rashid;Victim attacked with iron rod during local dispute;Solved;Officer Faisal
+1042;Lyari;Robbery;28/10/2024;21:40;Pistol;Zubair;Driver;Driver robbed at gunpoint on empty road;Unsolved;Inspector Saad
+1043;Landhi;Snatching;09/11/2024;18:20;None;Unknown;Woman;Purse snatched in crowded bazaar area;Solved;Officer Sana
+1044;Nazimabad;Robbery;23/11/2024;20:10;Knife;Usman;Shopkeeper;Suspect forced entry into shop and looted cash;Solved;Inspector Farooq
+1045;Landhi;Theft;05/12/2024;09:30;None;Unknown;Warehouse Owner;Goods stolen during night shift from warehouse;Unsolved;Officer Ahsan
+1046;North;Assault;19/12/2024;14:50;Stick;Salman;Kashif;Street fight resulted in multiple injuries;Solved;Officer Mariam
+1047;Clifton;Theft;04/01/2025;10:45;None;Unknown;Hotel Admin;Hotel storage room broken into and items stolen;Unsolved;Officer Imran
+1048;Landhi;Robbery;18/01/2025;21:25;Knife;Fahad;ATM User;Victim robbed immediately after withdrawing cash;Unsolved;Inspector Khalid
+
+
+
+
